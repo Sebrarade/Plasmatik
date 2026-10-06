@@ -140,10 +140,18 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
         if (phase > juce::MathConstants<float>::twoPi) phase -= juce::MathConstants<float>::twoPi;
         if (modPhase > juce::MathConstants<float>::twoPi) modPhase -= juce::MathConstants<float>::twoPi;
 
-        float dynamicCutoff = p.filterBase;
-        dynamicCutoff += filterEnv * (4500.0f + 11000.0f * p.filterBlast + 3200.0f * dynamicTone);
-        dynamicCutoff *= std::pow (2.0f, macroB * 2.35f);
-        dynamicCutoff = juce::jlimit (60.0f, 19000.0f, dynamicCutoff);
+        // Cutoff is the real base of the filter.  At the bottom of the knob,
+        // envelope / Everything modulation must not force the filter back open.
+        const float cutoffNorm = juce::jlimit (0.0f, 1.0f,
+            std::log (juce::jmax (20.0f, p.filterBase) / 20.0f) / std::log (16000.0f / 20.0f));
+
+        const float envOctaves = filterEnv
+            * (0.20f + 4.6f * p.filterBlast + 1.10f * dynamicTone)
+            * cutoffNorm;
+        const float macroOctaves = macroB * 2.15f * cutoffNorm;
+
+        float dynamicCutoff = p.filterBase * std::pow (2.0f, envOctaves + macroOctaves);
+        dynamicCutoff = juce::jlimit (20.0f, 19000.0f, dynamicCutoff);
 
         const float dynamicRes = juce::jlimit (0.05f, 0.985f,
             p.resonance + macroA * 0.36f + chaos * 0.08f * randomOffset);
@@ -167,6 +175,14 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
         float filterOut = low;
         if (p.filterType == 1) filterOut = band;
         else if (p.filterType == 2) filterOut = high;
+
+        // Make fully closed LP/BP actually close, rather than leaving a tiny
+        // resonant low-frequency leak at the absolute minimum.
+        if (p.filterType != 2)
+        {
+            const float closeGain = juce::jlimit (0.0f, 1.0f, (p.filterBase - 20.0f) / 55.0f);
+            filterOut *= closeGain;
+        }
 
         float filtered = fastTanh (filterOut * (1.0f + dynamicRes * 1.6f));
         filtered *= ampEnv * vel * dynamicLevel * 0.46f;
