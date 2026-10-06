@@ -134,7 +134,6 @@ private:
 
     juce::TextButton mutate { "MUTATE" };
     juce::ComboBox preset;
-    juce::Label subtitle;
     juce::Image fairyImage;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlasmaPercAudioProcessorEditor)
