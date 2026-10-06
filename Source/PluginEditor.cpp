@@ -142,7 +142,7 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
     {
         g.setOpacity (0.28f);
         auto imgArea = macroArea.removeFromBottom (210).reduced (18, 0).withTrimmedLeft (4);
-        g.drawImageWithin (fairyImage, imgArea.getX(), imgArea.getY(), imgArea.getWidth(), imgArea.getHeight(), juce::RectanglePlacement::centredBottom, false);
+        g.drawImageWithin (fairyImage, imgArea.getX(), imgArea.getY(), imgArea.getWidth(), imgArea.getHeight(), juce::RectanglePlacement::centred, false);
         g.setOpacity (1.0f);
     }
 }
