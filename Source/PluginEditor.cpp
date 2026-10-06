@@ -120,13 +120,8 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
         c->setFixedAspectRatio (16.0 / 9.0);
     setSize (1500, 844);
 
-    fairyImage = juce::ImageCache::getFromMemory (BinaryData::fairy_jpg, BinaryData::fairy_jpgSize);
+    fairyImage = juce::ImageCache::getFromMemory (BinaryData::fairy_logo_jpg, BinaryData::fairy_logo_jpgSize);
 
-    subtitle.setText ("GENERATIVE PLASMA / LASER PERCUSSION", juce::dontSendNotification);
-    subtitle.setJustificationType (juce::Justification::centred);
-    subtitle.setColour (juce::Label::textColourId, juce::Colour::fromRGB (45, 47, 50));
-    subtitle.setFont (juce::Font (juce::FontOptions (13.0f)).boldened());
-    addAndMakeVisible (subtitle);
 
     preset.addItem ("Plasma Garden", 1);
     preset.addItem ("Laser Dust", 2);
@@ -365,7 +360,7 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour::fromRGB (241, 242, 240));
 
-    const int headerH = juce::roundToInt ((float) getHeight() * 0.115f);
+    const int headerH = juce::roundToInt ((float) getHeight() * 0.13f);
     auto body = getLocalBounds().withTrimmedTop (headerH).withTrimmedBottom (56).reduced (10, 0);
 
     const int seqW = juce::roundToInt ((float) body.getWidth() * 0.31f);
@@ -384,17 +379,16 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colour::fromRGB (20, 22, 24));
     g.setFont (juce::Font (juce::FontOptions (29.0f)).boldened());
-    g.drawText ("P L A S M A T I K", 0, 28, getWidth(), 34, juce::Justification::centred);
+    g.drawText ("P L A S M A T I K", 0, 62, getWidth(), 34, juce::Justification::centred);
 
     if (fairyImage.isValid())
     {
-        g.setOpacity (0.88f);
-        const int logoH = juce::jmax (45, headerH - 10);
-        g.drawImageWithin (fairyImage, getWidth() / 2 - 35, 1, 70, logoH,
+        g.setOpacity (0.95f);
+        g.drawImageWithin (fairyImage, getWidth() / 2 - 24, 2, 48, 58,
                            juce::RectanglePlacement::centred, false);
 
-        g.setOpacity (0.12f);
-        auto art = macroArea.reduced (12).withTrimmedLeft (macroArea.getWidth() / 3);
+        g.setOpacity (0.16f);
+        auto art = macroArea.reduced (8).withTrimmedLeft (macroArea.getWidth() / 3);
         g.drawImageWithin (fairyImage, art.getX(), art.getY(), art.getWidth(), art.getHeight(),
                            juce::RectanglePlacement::centred, false);
         g.setOpacity (1.0f);
@@ -405,12 +399,10 @@ void PlasmaPercAudioProcessorEditor::resized()
 {
     const int w = getWidth();
     const int h = getHeight();
-    const int headerH = juce::roundToInt ((float) h * 0.115f);
+    const int headerH = juce::roundToInt ((float) h * 0.13f);
     const int bottomH = 56;
 
     preset.setBounds (20, juce::jmax (14, headerH / 2 - 18), juce::jmin (300, w / 4), 36);
-    subtitle.setBounds (w / 2 - juce::jmin (270, w / 5), headerH - 28,
-                        juce::jmin (540, w * 2 / 5), 18);
 
     auto body = getLocalBounds().withTrimmedTop (headerH).withTrimmedBottom (bottomH).reduced (10, 0);
 
