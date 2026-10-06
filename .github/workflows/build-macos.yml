@@ -26,6 +26,13 @@ jobs:
           file "$VST3/Contents/MacOS/Plasmatik"
           lipo -archs "$VST3/Contents/MacOS/Plasmatik"
 
+      - name: Validate with pluginval
+        run: |
+          curl -L "https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_macOS.zip" -o pluginval.zip
+          unzip -q pluginval.zip -d pluginval
+          xattr -cr pluginval/pluginval.app || true
+          pluginval/pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --skip-gui-tests "build/Plasmatik_artefacts/Release/VST3/Plasmatik.vst3"
+
       - name: Package
         run: |
           cd build/Plasmatik_artefacts/Release/VST3
