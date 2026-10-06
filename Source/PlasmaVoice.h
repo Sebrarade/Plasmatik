@@ -42,6 +42,11 @@ private:
     float vel = 1.0f;
     float randomOffset = 0.0f;
     float pitchJitter = 0.0f;
+
+    float f1 = 0.0f;
+    float f2 = 0.0f;
+    float f3 = 0.0f;
+    float f4 = 0.0f;
+
     juce::Random rng;
-    juce::dsp::LadderFilter<float> ladder;
 };
