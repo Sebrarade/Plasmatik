@@ -443,7 +443,7 @@ void PlasmaPercAudioProcessorEditor::styleActionButton (
 {
     b.setClickingTogglesState (toggle);
     b.setColour (juce::TextButton::buttonColourId, juce::Colour::fromRGB (246, 246, 244));
-    b.setColour (juce::TextButton::buttonOnColourId, accent.withAlpha (0.26f));
+    b.setColour (juce::TextButton::buttonOnColourId, accent);
     b.setColour (juce::TextButton::textColourOffId, juce::Colour::fromRGB (28, 30, 32));
     b.setColour (juce::TextButton::textColourOnId, juce::Colour::fromRGB (20, 22, 24));
     addAndMakeVisible (b);
@@ -656,7 +656,7 @@ void PlasmaPercAudioProcessorEditor::resized()
         auto& s = seqs[(size_t) v];
         const int y = seqY[(size_t) v];
 
-        s.title.setBounds (B (38, y, 92, 31));
+        s.title.setBounds (B (68, y, 62, 31));
         s.division.setBounds (B (132, y, 83, 35));
         s.evolve.setBounds (B (229, y, 77, 35));
         s.drift.setBounds (B (316, y, 68, 35));
@@ -736,7 +736,7 @@ void PlasmaPercAudioProcessorEditor::resized()
         auto& m = macros[(size_t) v];
         const int y = my[(size_t) v];
 
-        m.title.setBounds (B (1324, y, 150, 27));
+        m.title.setBounds (B (1338, y, 138, 27));
         m.amount.setBounds (B (1318, y + 35, 86, 86));
         m.amountL.setBounds (B (1318, y + 121, 86, 24));
 
