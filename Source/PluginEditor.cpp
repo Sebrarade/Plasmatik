@@ -196,8 +196,6 @@ void PlasmaPercAudioProcessorEditor::PatternView::paint (juce::Graphics& g)
 
 //==============================================================================
 
-PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor//==============================================================================
-
 PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
