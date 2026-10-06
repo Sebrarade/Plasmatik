@@ -60,6 +60,61 @@ void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawButtonBackground 
     g.drawRoundedRectangle (r, 5.0f, 1.0f);
 }
 
+void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawLinearSlider (
+    juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+    float, float, const juce::Slider::SliderStyle style, juce::Slider& slider)
+{
+    if (style != juce::Slider::LinearHorizontal)
+    {
+        juce::LookAndFeel_V4::drawLinearSlider (g, x, y, width, height, sliderPos, 0.0f, 1.0f, style, slider);
+        return;
+    }
+
+    auto r = juce::Rectangle<float> ((float) x, (float) y, (float) width, (float) height).reduced (3.0f, height * 0.34f);
+    const float radius = r.getHeight() * 0.5f;
+
+    g.setColour (juce::Colour::fromRGB (220, 221, 219));
+    g.fillRoundedRectangle (r, radius);
+
+    auto filled = r;
+    filled.setWidth (juce::jlimit (0.0f, r.getWidth(), sliderPos - r.getX()));
+    g.setColour (slider.findColour (juce::Slider::trackColourId));
+    g.fillRoundedRectangle (filled, radius);
+
+    const float thumbX = juce::jlimit (r.getX(), r.getRight(), sliderPos);
+    g.setColour (juce::Colour::fromRGB (245, 245, 242));
+    g.fillEllipse (thumbX - 5.0f, r.getCentreY() - 5.0f, 10.0f, 10.0f);
+    g.setColour (juce::Colour::fromRGB (166, 168, 168));
+    g.drawEllipse (thumbX - 5.0f, r.getCentreY() - 5.0f, 10.0f, 10.0f, 1.0f);
+}
+
+void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawComboBox (
+    juce::Graphics& g, int width, int height, bool, int, int, int, int, juce::ComboBox& box)
+{
+    auto r = juce::Rectangle<float> (0.5f, 0.5f, (float) width - 1.0f, (float) height - 1.0f);
+    g.setColour (juce::Colour::fromRGB (249, 249, 247));
+    g.fillRoundedRectangle (r, 4.5f);
+    g.setColour (juce::Colour::fromRGB (197, 199, 199));
+    g.drawRoundedRectangle (r, 4.5f, 1.0f);
+
+    const float cx = (float) width - 15.0f;
+    const float cy = (float) height * 0.50f;
+    juce::Path p;
+    p.startNewSubPath (cx - 4.0f, cy - 2.0f);
+    p.lineTo (cx, cy + 2.0f);
+    p.lineTo (cx + 4.0f, cy - 2.0f);
+    g.setColour (box.findColour (juce::ComboBox::textColourId));
+    g.strokePath (p, juce::PathStrokeType (1.7f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+}
+
+void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::positionComboBoxText (
+    juce::ComboBox& box, juce::Label& label)
+{
+    label.setBounds (9, 1, box.getWidth() - 29, box.getHeight() - 2);
+    label.setFont (juce::Font (juce::FontOptions (13.0f)).boldened());
+    label.setJustificationType (juce::Justification::centredLeft);
+}
+
 //==============================================================================
 // Pattern view
 
@@ -115,10 +170,10 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
 {
     setLookAndFeel (&lookAndFeel);
     setResizable (true, true);
-    setResizeLimits (1120, 630, 1920, 1080);
+    setResizeLimits (1115, 627, 2006, 1129);
     if (auto* c = getConstrainer())
-        c->setFixedAspectRatio (16.0 / 9.0);
-    setSize (1500, 844);
+        c->setFixedAspectRatio (1672.0 / 941.0);
+    setSize (1672, 941);
 
     fairyImage = juce::ImageCache::getFromMemory (BinaryData::fairy_logo_jpg, BinaryData::fairy_logo_jpgSize);
 
@@ -167,7 +222,7 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
         seq.autoA = std::make_unique<ButtonAttachment> (processor.getAPVTS(), epId (v, "auto"), seq.autoMode);
 
         styleSmallKnob (seq.density, seq.densityL, "DENS", accent);
-        styleHorizontal (seq.prob, seq.probL, "PROB", accent);
+        styleSmallKnob (seq.prob, seq.probL, "PROB", accent);
         styleSmallKnob (seq.rotate, seq.rotateL, "ROT", accent);
         seq.densityA = std::make_unique<SliderAttachment> (processor.getAPVTS(), epId (v, "density"), seq.density);
         seq.probA = std::make_unique<SliderAttachment> (processor.getAPVTS(), epId (v, "prob"), seq.prob);
@@ -195,11 +250,11 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
                 processor.getAPVTS(), epId (v, engineIds[(size_t) k]), e.knobs[(size_t) k]);
         }
 
-        styleCombo (e.wave, e.waveL, "WAVE");
+        styleCombo (e.wave, e.waveL, "");
         e.wave.addItemList (waveNames, 1);
         e.waveA = std::make_unique<ComboAttachment> (processor.getAPVTS(), epId (v, "wave"), e.wave);
 
-        styleHorizontal (e.level, e.levelL, "LEVEL", accent);
+        styleKnob (e.level, e.levelL, "LEVEL", accent, false);
         e.levelA = std::make_unique<SliderAttachment> (processor.getAPVTS(), epId (v, "level"), e.level);
 
         auto& m = macros[(size_t) v];
@@ -358,216 +413,235 @@ void PlasmaPercAudioProcessorEditor::drawPanel (
 
 void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colour::fromRGB (241, 242, 240));
+    const float sx = (float) getWidth() / 1672.0f;
+    const float sy = (float) getHeight() / 941.0f;
+    auto R = [sx, sy] (float x, float y, float w, float h)
+    {
+        return juce::Rectangle<float> (x * sx, y * sy, w * sx, h * sy);
+    };
 
-    const int headerH = juce::roundToInt ((float) getHeight() * 0.13f);
-    auto body = getLocalBounds().withTrimmedTop (headerH).withTrimmedBottom (56).reduced (10, 0);
+    // Approved light/off-white shell.
+    g.fillAll (juce::Colour::fromRGB (242, 243, 241));
 
-    const int seqW = juce::roundToInt ((float) body.getWidth() * 0.31f);
-    const int engW = juce::roundToInt ((float) body.getWidth() * 0.27f);
-    const int globalW = juce::roundToInt ((float) body.getWidth() * 0.25f);
+    // Very subtle top haze like the approved mockup.
+    juce::ColourGradient topGlow (juce::Colour::fromRGB (252, 252, 250), 836.0f * sx, 0.0f,
+                                  juce::Colour::fromRGB (238, 240, 239), 836.0f * sx, 150.0f * sy, false);
+    g.setGradientFill (topGlow);
+    g.fillRect (R (0, 0, 1672, 150));
 
-    auto seqArea = body.removeFromLeft (seqW).reduced (4);
-    auto engineArea = body.removeFromLeft (engW).reduced (4);
-    auto globalArea = body.removeFromLeft (globalW).reduced (4);
-    auto macroArea = body.reduced (4);
+    // Main cards – same proportions as the approved artwork.
+    drawPanel (g, R (10, 143, 502, 774).toNearestInt(), "SEQUENCERS");
+    drawPanel (g, R (520, 143, 390, 774).toNearestInt(), "VOICE ENGINES");
+    drawPanel (g, R (918, 143, 372, 511).toNearestInt(), "ENV / FILTER / GENERATIVE");
+    drawPanel (g, R (918, 663, 372, 254).toNearestInt(), "BITCRUSHER (REDUX)");
+    drawPanel (g, R (1298, 143, 364, 774).toNearestInt(), "EVERYTHING MACROS");
 
-    drawPanel (g, seqArea, "SEQUENCERS");
-    drawPanel (g, engineArea, "VOICE ENGINES");
-    drawPanel (g, globalArea, "ENV / FILTER / GENERATIVE");
-    drawPanel (g, macroArea, "EVERYTHING MACROS");
+    // Thin separators in the four track / macro lanes.
+    g.setColour (juce::Colour::fromRGB (224, 225, 223));
+    for (int i = 1; i < 4; ++i)
+    {
+        const float y = (201.0f + i * 160.0f) * sy;
+        g.drawLine (28.0f * sx, y, 497.0f * sx, y, 1.0f);
+    }
+    for (int i = 1; i < 4; ++i)
+    {
+        const float y = (201.0f + i * 174.0f) * sy;
+        g.drawLine (1312.0f * sx, y, 1648.0f * sx, y, 1.0f);
+    }
 
-    g.setColour (juce::Colour::fromRGB (20, 22, 24));
-    g.setFont (juce::Font (juce::FontOptions (29.0f)).boldened());
-    g.drawText ("P L A S M A T I K", 0, 62, getWidth(), 34, juce::Justification::centred);
+    // Header utility marks.
+    g.setColour (juce::Colour::fromRGB (28, 30, 32));
+    g.setFont (juce::Font (juce::FontOptions (30.0f * sx)).boldened());
+    g.drawText ("◯", R (28, 72, 42, 42).toNearestInt(), juce::Justification::centred);
+    g.setFont (juce::Font (juce::FontOptions (25.0f * sx)));
+    g.drawText ("‹", R (100, 72, 28, 42).toNearestInt(), juce::Justification::centred);
+    g.drawText ("›", R (135, 72, 28, 42).toNearestInt(), juce::Justification::centred);
 
+    // Fairy branding: compact mark above the title + large pale right-hand watermark.
     if (fairyImage.isValid())
     {
-        g.setOpacity (0.95f);
-        g.drawImageWithin (fairyImage, getWidth() / 2 - 24, 2, 48, 58,
+        g.setOpacity (0.98f);
+        auto logo = R (642, 1, 100, 116).toNearestInt();
+        g.drawImageWithin (fairyImage, logo.getX(), logo.getY(), logo.getWidth(), logo.getHeight(),
                            juce::RectanglePlacement::centred, false);
 
-        g.setOpacity (0.16f);
-        auto art = macroArea.reduced (8).withTrimmedLeft (macroArea.getWidth() / 3);
+        g.setOpacity (0.18f);
+        auto art = R (1452, 180, 205, 650).toNearestInt();
         g.drawImageWithin (fairyImage, art.getX(), art.getY(), art.getWidth(), art.getHeight(),
                            juce::RectanglePlacement::centred, false);
         g.setOpacity (1.0f);
     }
+
+    // PLASMATIK only — subtitle intentionally removed.
+    g.setColour (juce::Colour::fromRGB (18, 20, 23));
+    g.setFont (juce::Font (juce::FontOptions (31.0f * sx)));
+    g.drawText ("P  L  A  S  M  A  T  I  K", R (715, 69, 430, 43).toNearestInt(), juce::Justification::centred);
+
+    // Top-right utility labels.
+    g.setFont (juce::Font (juce::FontOptions (13.5f * sx)).boldened());
+    g.drawText ("◇", R (1362, 73, 44, 42).toNearestInt(), juce::Justification::centred);
+    g.drawText ("INIT", R (1422, 78, 52, 32).toNearestInt(), juce::Justification::centred);
+    g.drawText ("SAVE", R (1494, 78, 58, 32).toNearestInt(), juce::Justification::centred);
+    g.setFont (juce::Font (juce::FontOptions (24.0f * sx)).boldened());
+    g.drawText ("•••", R (1576, 76, 56, 32).toNearestInt(), juce::Justification::centred);
+
+    // Small visual utility row under the sequencer – matches the approved design.
+    auto util = R (28, 826, 468, 47);
+    g.setColour (juce::Colour::fromRGB (246, 247, 245));
+    g.fillRoundedRectangle (util, 5.0f * sx);
+    g.setColour (juce::Colour::fromRGB (204, 206, 205));
+    g.drawRoundedRectangle (util, 5.0f * sx, 1.0f);
+
+    auto drawMini = [&] (juce::String text, juce::Rectangle<float> r)
+    {
+        g.setColour (juce::Colour::fromRGB (249, 249, 247));
+        g.fillRoundedRectangle (r, 4.0f * sx);
+        g.setColour (juce::Colour::fromRGB (198, 200, 200));
+        g.drawRoundedRectangle (r, 4.0f * sx, 1.0f);
+        g.setColour (juce::Colour::fromRGB (29, 31, 33));
+        g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
+        g.drawText (text, r.toNearestInt(), juce::Justification::centred);
+    };
+
+    drawMini ("▶", R (31, 831, 50, 35));
+    g.setColour (juce::Colour::fromRGB (29, 31, 33));
+    g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
+    g.drawText ("STEPS", R (93, 831, 54, 35).toNearestInt(), juce::Justification::centredLeft);
+    drawMini ("16⌄", R (145, 831, 72, 35));
+    drawMini ("COPY", R (242, 831, 59, 35));
+    drawMini ("PASTE", R (306, 831, 64, 35));
+    drawMini ("CLEAR", R (374, 831, 65, 35));
+    drawMini ("⤨", R (444, 831, 46, 35));
+
+    // Crusher heading accent + power glyph.
+    g.setColour (juce::Colour::fromRGB (25, 27, 29));
+    g.setFont (juce::Font (juce::FontOptions (13.0f * sx)).boldened());
+    g.drawText ("⌁", R (930, 669, 30, 28).toNearestInt(), juce::Justification::centred);
+    g.drawText ("POWER", R (1220, 669, 58, 28).toNearestInt(), juce::Justification::centredRight);
+
+    // Bottom master labels.
+    g.setColour (juce::Colour::fromRGB (28, 30, 32));
+    g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
+    g.drawText ("OUTPUT", R (32, 882, 68, 28).toNearestInt(), juce::Justification::centredLeft);
+    g.drawText ("MIX", R (1150, 882, 50, 28).toNearestInt(), juce::Justification::centredRight);
+    g.drawText ("WIDTH", R (1392, 882, 62, 28).toNearestInt(), juce::Justification::centredRight);
 }
 
 void PlasmaPercAudioProcessorEditor::resized()
 {
-    const int w = getWidth();
-    const int h = getHeight();
-    const int headerH = juce::roundToInt ((float) h * 0.13f);
-    const int bottomH = 56;
+    const float sx = (float) getWidth() / 1672.0f;
+    const float sy = (float) getHeight() / 941.0f;
+    auto B = [sx, sy] (int x, int y, int w, int h)
+    {
+        return juce::Rectangle<int> (juce::roundToInt ((float) x * sx),
+                                     juce::roundToInt ((float) y * sy),
+                                     juce::roundToInt ((float) w * sx),
+                                     juce::roundToInt ((float) h * sy));
+    };
 
-    preset.setBounds (20, juce::jmax (14, headerH / 2 - 18), juce::jmin (300, w / 4), 36);
+    // Header preset field.
+    preset.setBounds (B (179, 78, 326, 45));
 
-    auto body = getLocalBounds().withTrimmedTop (headerH).withTrimmedBottom (bottomH).reduced (10, 0);
-
-    const int seqW = juce::roundToInt ((float) body.getWidth() * 0.31f);
-    const int engW = juce::roundToInt ((float) body.getWidth() * 0.27f);
-    const int globalW = juce::roundToInt ((float) body.getWidth() * 0.25f);
-
-    auto seqArea = body.removeFromLeft (seqW).reduced (14, 10);
-    auto engineArea = body.removeFromLeft (engW).reduced (14, 10);
-    auto globalArea = body.removeFromLeft (globalW).reduced (14, 10);
-    auto macroArea = body.reduced (14, 10);
-
-    // Sequencers --------------------------------------------------------------
-    seqArea.removeFromTop (34);
-    const int seqUtilityH = 42;
-    auto seqRowsArea = seqArea.withTrimmedBottom (seqUtilityH);
-    const int rowH = seqRowsArea.getHeight() / 4;
-
+    // Sequencer tracks.
+    const std::array<int, 4> seqY { 208, 369, 531, 692 };
     for (int v = 0; v < 4; ++v)
     {
-        auto row = seqRowsArea.removeFromTop (rowH).reduced (0, 3);
-        auto top = row.removeFromTop (30);
+        auto& s = seqs[(size_t) v];
+        const int y = seqY[(size_t) v];
 
-        seqs[(size_t) v].title.setBounds (top.removeFromLeft (70));
-        seqs[(size_t) v].division.setBounds (top.removeFromLeft (72).reduced (2, 1));
-        seqs[(size_t) v].evolve.setBounds (top.removeFromLeft (72).reduced (2, 1));
-        seqs[(size_t) v].drift.setBounds (top.removeFromLeft (62).reduced (2, 1));
-        seqs[(size_t) v].autoMode.setBounds (top.removeFromLeft (62).reduced (2, 1));
+        s.title.setBounds (B (38, y, 92, 31));
+        s.division.setBounds (B (132, y, 83, 35));
+        s.evolve.setBounds (B (229, y, 77, 35));
+        s.drift.setBounds (B (316, y, 68, 35));
+        s.autoMode.setBounds (B (394, y, 67, 35));
 
-        auto graph = row.removeFromTop (juce::jmax (38, row.getHeight() / 2));
-        if (seqs[(size_t) v].pattern != nullptr)
-            seqs[(size_t) v].pattern->setBounds (graph.reduced (2));
+        if (s.pattern != nullptr)
+            s.pattern->setBounds (B (38, y + 48, 432, 63));
 
-        auto controls = row.reduced (2, 0);
-        const int third = controls.getWidth() / 3;
+        s.densityL.setBounds (B (39, y + 111, 48, 28));
+        s.density.setBounds (B (80, y + 104, 42, 42));
 
-        auto dens = controls.removeFromLeft (third);
-        seqs[(size_t) v].densityL.setBounds (dens.removeFromLeft (46));
-        seqs[(size_t) v].density.setBounds (dens.withSizeKeepingCentre (44, juce::jmin (44, dens.getHeight())));
+        s.probL.setBounds (B (233, y + 111, 48, 28));
+        s.prob.setBounds (B (273, y + 104, 42, 42));
 
-        auto prob = controls.removeFromLeft (third);
-        seqs[(size_t) v].probL.setBounds (prob.removeFromLeft (44));
-        seqs[(size_t) v].prob.setBounds (prob.reduced (2, 2));
-
-        auto rot = controls;
-        seqs[(size_t) v].rotateL.setBounds (rot.removeFromLeft (35));
-        seqs[(size_t) v].rotate.setBounds (rot.withSizeKeepingCentre (44, juce::jmin (44, rot.getHeight())));
+        s.rotateL.setBounds (B (389, y + 111, 44, 28));
+        s.rotate.setBounds (B (421, y + 104, 42, 42));
     }
 
-    // Voice engines -----------------------------------------------------------
-    engineArea.removeFromTop (34);
-    const int engineW = engineArea.getWidth() / 4;
-
+    // Voice engines — four columns matching the approved mockup.
+    const std::array<int, 4> vx { 526, 622, 718, 814 };
     for (int v = 0; v < 4; ++v)
     {
-        auto col = engineArea.removeFromLeft (engineW).reduced (3, 0);
         auto& e = engines[(size_t) v];
+        const int x = vx[(size_t) v];
 
-        e.title.setBounds (col.removeFromTop (23));
-        e.mute.setBounds (col.removeFromTop (28).reduced (8, 2));
+        e.title.setBounds (B (x, 207, 82, 27));
+        e.mute.setBounds (B (x + 2, 244, 78, 32));
 
+        const std::array<int, 4> ky { 292, 405, 518, 631 };
         for (int k = 0; k < 4; ++k)
         {
-            auto cell = col.removeFromTop (juce::jmax (60, col.getHeight() / (6 - k)));
-            e.labels[(size_t) k].setBounds (cell.removeFromTop (17));
-            e.knobs[(size_t) k].setBounds (cell.withSizeKeepingCentre (
-                juce::jmin (72, cell.getWidth()), juce::jmin (64, cell.getHeight())));
+            e.knobs[(size_t) k].setBounds (B (x + 7, ky[(size_t) k], 68, 68));
+            e.labels[(size_t) k].setBounds (B (x, ky[(size_t) k] + 69, 82, 24));
         }
 
-        auto waveCell = col.removeFromTop (46);
-        e.waveL.setBounds (waveCell.removeFromTop (15));
-        e.wave.setBounds (waveCell.reduced (4, 2));
-
-        auto levelCell = col;
-        e.levelL.setBounds (levelCell.removeFromTop (16));
-        e.level.setBounds (levelCell.reduced (5, 2));
+        e.waveL.setVisible (false);
+        e.wave.setBounds (B (x + 2, 725, 78, 38));
+        e.levelL.setBounds (B (x, 771, 82, 23));
+        e.level.setBounds (B (x + 8, 794, 66, 66));
     }
 
-    // Global / filter / generative + crusher ---------------------------------
-    globalArea.removeFromTop (34);
-    const int crusherH = juce::jmax (175, globalArea.getHeight() / 3);
-    auto globalsArea = globalArea.withTrimmedBottom (crusherH + 8);
-    auto crusherArea = globalArea.removeFromBottom (crusherH);
-
-    const int gw = globalsArea.getWidth() / 3;
-    const int gh = globalsArea.getHeight() / 4;
-
-    for (int i = 0; i < 9; ++i)
+    // ENV / FILTER / GENERATIVE – 3 x 3 grid + chaos + mutate.
+    const std::array<int, 3> gx { 942, 1061, 1180 };
+    const std::array<int, 3> gy { 207, 322, 437 };
+    int gi = 0;
+    for (int row = 0; row < 3; ++row)
     {
-        const int col = i % 3;
-        const int row = i / 3;
-        auto cell = juce::Rectangle<int> (
-            globalsArea.getX() + col * gw,
-            globalsArea.getY() + row * gh,
-            gw, gh).reduced (4, 2);
-
-        globalLabels[(size_t) i].setBounds (cell.removeFromBottom (18));
-        globals[(size_t) i].setBounds (cell.withSizeKeepingCentre (
-            juce::jmin (72, cell.getWidth()), juce::jmin (68, cell.getHeight())));
+        for (int col = 0; col < 3; ++col)
+        {
+            globals[(size_t) gi].setBounds (B (gx[(size_t) col], gy[(size_t) row], 72, 72));
+            globalLabels[(size_t) gi].setBounds (B (gx[(size_t) col] - 5, gy[(size_t) row] + 74, 82, 24));
+            ++gi;
+        }
     }
 
-    auto bottomGlobal = juce::Rectangle<int> (
-        globalsArea.getX(), globalsArea.getY() + 3 * gh, globalsArea.getWidth(), gh).reduced (4, 2);
-    auto chaosCell = bottomGlobal.removeFromLeft (gw);
-    globalLabels[9].setBounds (chaosCell.removeFromBottom (18));
-    globals[9].setBounds (chaosCell.withSizeKeepingCentre (
-        juce::jmin (72, chaosCell.getWidth()), juce::jmin (68, chaosCell.getHeight())));
-    mutate.setBounds (bottomGlobal.reduced (16, juce::jmax (6, bottomGlobal.getHeight() / 4)));
+    globals[9].setBounds (B (942, 550, 72, 72));
+    globalLabels[9].setBounds (B (937, 624, 82, 24));
+    mutate.setBounds (B (1043, 555, 218, 69));
 
-    const int crusherTitleH = 24;
-    auto crusherTop = crusherArea.removeFromTop (crusherTitleH);
-    crusherTop.removeFromLeft (4);
-    auto crusherLabel = crusherTop;
-    (void) crusherLabel;
-
-    auto knobRow = crusherArea.removeFromTop (juce::jmax (78, crusherArea.getHeight() / 2));
-    const int kw = knobRow.getWidth() / 4;
+    // Bitcrusher.
+    const std::array<int, 4> cx { 937, 997, 1057, 1117 };
     for (int i = 0; i < 4; ++i)
     {
-        auto cell = knobRow.removeFromLeft (kw).reduced (2);
-        crusherLabels[(size_t) i].setBounds (cell.removeFromBottom (17));
-        crusherKnobs[(size_t) i].setBounds (cell.withSizeKeepingCentre (
-            juce::jmin (62, cell.getWidth()), juce::jmin (58, cell.getHeight())));
+        crusherKnobs[(size_t) i].setBounds (B (cx[(size_t) i], 716, 58, 58));
+        crusherLabels[(size_t) i].setBounds (B (cx[(size_t) i] - 2, 775, 62, 22));
     }
 
-    auto comboRow = crusherArea;
-    auto shapeCell = comboRow.removeFromLeft (comboRow.getWidth() / 2).reduced (3);
-    crusherShapeL.setBounds (shapeCell.removeFromTop (16));
-    crusherShape.setBounds (shapeCell.removeFromTop (30));
-    auto rateCell = comboRow.reduced (3);
-    crusherRateL.setBounds (rateCell.removeFromTop (16));
-    crusherRate.setBounds (rateCell.removeFromTop (30));
+    crusherShapeL.setBounds (B (1130, 704, 95, 20));
+    crusherShape.setBounds (B (1130, 726, 142, 36));
+    crusherRateL.setBounds (B (1130, 769, 110, 20));
+    crusherRate.setBounds (B (1130, 792, 142, 38));
 
-    // Everything LFO modules --------------------------------------------------
-    macroArea.removeFromTop (34);
-    const int macroH = macroArea.getHeight() / 4;
+    // Everything macros.
+    const std::array<int, 4> my { 207, 381, 555, 729 };
     for (int v = 0; v < 4; ++v)
     {
-        auto row = macroArea.removeFromTop (macroH).reduced (2, 4);
         auto& m = macros[(size_t) v];
+        const int y = my[(size_t) v];
 
-        m.title.setBounds (row.removeFromTop (20));
+        m.title.setBounds (B (1324, y, 150, 27));
+        m.amount.setBounds (B (1318, y + 35, 86, 86));
+        m.amountL.setBounds (B (1318, y + 121, 86, 24));
 
-        const int amountW = juce::jmax (72, row.getWidth() / 2);
-        auto amountCell = row.removeFromLeft (amountW);
-        m.amountL.setBounds (amountCell.removeFromBottom (17));
-        m.amount.setBounds (amountCell.withSizeKeepingCentre (
-            juce::jmin (84, amountCell.getWidth()), juce::jmin (74, amountCell.getHeight())));
-
-        auto selects = row.reduced (2);
-        auto sh = selects.removeFromTop (selects.getHeight() / 2);
-        m.shapeL.setBounds (sh.removeFromTop (15));
-        m.shape.setBounds (sh.reduced (1, 1));
-        auto rt = selects;
-        m.rateL.setBounds (rt.removeFromTop (15));
-        m.rate.setBounds (rt.reduced (1, 1));
+        m.shapeL.setBounds (B (1428, y + 31, 78, 20));
+        m.shape.setBounds (B (1428, y + 52, 112, 38));
+        m.rateL.setBounds (B (1428, y + 96, 78, 20));
+        m.rate.setBounds (B (1428, y + 117, 112, 38));
     }
 
-    // Bottom utilities --------------------------------------------------------
-    auto bottom = getLocalBounds().removeFromBottom (bottomH).reduced (18, 7);
-    auto leftBottom = bottom.removeFromLeft (bottom.getWidth() / 2);
-    outputL.setBounds (leftBottom.removeFromLeft (64));
-    output.setBounds (leftBottom.reduced (4, 3));
-
-    auto rightBottom = bottom;
-    widthL.setBounds (rightBottom.removeFromLeft (54));
-    width.setBounds (rightBottom.reduced (4, 3));
+    // Bottom master strips.
+    outputL.setVisible (false);
+    output.setBounds (B (111, 883, 198, 27));
+    widthL.setVisible (false);
+    width.setBounds (B (1453, 883, 168, 27));
 }
