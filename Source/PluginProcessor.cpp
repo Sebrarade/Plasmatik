@@ -22,6 +22,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PlasmaPercAudioProcessor::cr
     const juce::StringArray waves { "Sine", "Triangle", "Square", "Saw", "Noise" };
     const juce::StringArray lfoShapes { "Sine", "Triangle", "Saw", "Square", "S&H", "Smooth Random" };
     const juce::StringArray lfoRates { "4 Bars", "2 Bars", "1 Bar", "1/2", "1/4", "1/8", "1/16", "1/32" };
+    const juce::StringArray filterTypes { "LP", "BP", "HP" };
 
     for (int v = 0; v < 4; ++v)
     {
@@ -49,8 +50,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout PlasmaPercAudioProcessor::cr
 
     layout.add (std::make_unique<juce::AudioParameterFloat> ("decay", "Decay", 0.0f, 1.0f, 0.30f));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("env_amt", "Env Amount", 0.0f, 1.0f, 0.72f));
-    layout.add (std::make_unique<juce::AudioParameterFloat> ("filter_base", "Filter Base",
-                 juce::NormalisableRange<float> (80.0f, 12000.0f, 0.1f, 0.28f), 1650.0f));
+    layout.add (std::make_unique<juce::AudioParameterFloat> ("filter_base", "Cutoff",
+                 juce::NormalisableRange<float> (80.0f, 16000.0f, 0.1f, 0.26f), 1650.0f));
+    layout.add (std::make_unique<juce::AudioParameterChoice> ("filter_type", "Filter Type", filterTypes, 0));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("filter_blast", "Filter Blast", 0.0f, 1.0f, 0.78f));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("res", "Resonance", 0.0f, 1.0f, 0.70f));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("drive", "Drive", 0.0f, 1.0f, 0.48f));
@@ -137,6 +139,7 @@ PlasmaVoiceParams PlasmaPercAudioProcessor::readVoiceParams (int i, double bpm) 
     p.decay = apvts.getRawParameterValue ("decay")->load();
     p.envAmount = apvts.getRawParameterValue ("env_amt")->load();
     p.filterBase = apvts.getRawParameterValue ("filter_base")->load();
+    p.filterType = (int) apvts.getRawParameterValue ("filter_type")->load();
     p.filterBlast = apvts.getRawParameterValue ("filter_blast")->load();
     p.resonance = apvts.getRawParameterValue ("res")->load();
     p.drive = apvts.getRawParameterValue ("drive")->load();
@@ -454,7 +457,8 @@ void PlasmaPercAudioProcessor::mutate (float amount)
 
     // Decay is intentionally excluded from MUTATE.
     setNorm ("env_amt", 0.25f + 0.70f * rng.nextFloat());
-    setNorm ("filter_base", 0.08f + 0.60f * rng.nextFloat());
+    setNorm ("filter_base", 0.04f + 0.82f * rng.nextFloat());
+    setNorm ("filter_type", rng.nextFloat());
     setNorm ("filter_blast", 0.20f + 0.78f * rng.nextFloat());
     setNorm ("res", 0.42f + 0.52f * rng.nextFloat());
     setNorm ("drive", 0.18f + 0.68f * rng.nextFloat());
@@ -469,39 +473,6 @@ void PlasmaPercAudioProcessor::mutate (float amount)
     setNorm ("crush_lfo_depth", 0.02f + 0.78f * rng.nextFloat());
     setNorm ("crush_lfo_shape", rng.nextFloat());
     setNorm ("crush_lfo_rate", rng.nextFloat());
-}
-
-void PlasmaPercAudioProcessor::loadPreset (int presetIndex)
-{
-    auto setActual = [this] (const juce::String& id, float value)
-    {
-        if (auto* p = dynamic_cast<juce::RangedAudioParameter*> (apvts.getParameter (id)))
-            p->setValueNotifyingHost (p->convertTo0to1 (value));
-    };
-
-    if (presetIndex == 0)
-    {
-        setActual ("decay", 0.28f); setActual ("filter_blast", 0.78f); setActual ("res", 0.70f); setActual ("drive", 0.45f);
-        setActual ("crush", 0.16f); setActual ("crush_mix", 0.22f);
-    }
-    else if (presetIndex == 1)
-    {
-        setActual ("decay", 0.16f); setActual ("filter_blast", 0.92f); setActual ("res", 0.82f); setActual ("drive", 0.62f);
-        setActual ("crush", 0.42f); setActual ("crush_mix", 0.48f);
-    }
-    else if (presetIndex == 2)
-    {
-        setActual ("decay", 0.48f); setActual ("filter_blast", 0.48f); setActual ("res", 0.56f); setActual ("drive", 0.72f);
-        setActual ("crush", 0.62f); setActual ("crush_mix", 0.68f);
-    }
-    else
-    {
-        setActual ("decay", 0.34f); setActual ("filter_blast", 0.86f); setActual ("res", 0.76f); setActual ("drive", 0.38f);
-        setActual ("crush", 0.25f); setActual ("crush_mix", 0.34f);
-    }
-
-    for (int v = 0; v < 4; ++v)
-        requestEvolve (v);
 }
 
 void PlasmaPercAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
