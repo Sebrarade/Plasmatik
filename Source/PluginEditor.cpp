@@ -441,7 +441,7 @@ void PlasmaPercAudioProcessorEditor::resized()
         seqs[(size_t) v].autoMode.setBounds (top.removeFromLeft (62).reduced (2, 1));
 
         auto graph = row.removeFromTop (juce::jmax (38, row.getHeight() / 2));
-        seqs[(size_t) v].pattern->setBounds (graph.reduced (2));
+        if (seqs[(size_t) v].pattern != nullptr)\n            seqs[(size_t) v].pattern->setBounds (graph.reduced (2));
 
         auto controls = row.reduced (2, 0);
         const int third = controls.getWidth() / 3;
