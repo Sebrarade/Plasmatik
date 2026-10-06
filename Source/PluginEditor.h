@@ -137,7 +137,6 @@ private:
     std::unique_ptr<SliderAttachment> widthA;
 
     juce::TextButton mutate { "MUTATE" };
-    juce::ComboBox preset;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlasmaPercAudioProcessorEditor)
 };
