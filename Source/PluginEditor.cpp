@@ -442,44 +442,12 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawText ("P  L  A  S  M  A  T  I  K", R (715, 69, 430, 43).toNearestInt(), juce::Justification::centred);
 
 
-    // Small visual utility row under the sequencer – matches the approved design.
-    auto util = R (28, 826, 468, 47);
-    g.setColour (juce::Colour::fromRGB (246, 247, 245));
-    g.fillRoundedRectangle (util, 5.0f * sx);
-    g.setColour (juce::Colour::fromRGB (204, 206, 205));
-    g.drawRoundedRectangle (util, 5.0f * sx, 1.0f);
 
-    auto drawMini = [&] (juce::String text, juce::Rectangle<float> r)
-    {
-        g.setColour (juce::Colour::fromRGB (249, 249, 247));
-        g.fillRoundedRectangle (r, 4.0f * sx);
-        g.setColour (juce::Colour::fromRGB (198, 200, 200));
-        g.drawRoundedRectangle (r, 4.0f * sx, 1.0f);
-        g.setColour (juce::Colour::fromRGB (29, 31, 33));
-        g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
-        g.drawText (text, r.toNearestInt(), juce::Justification::centred);
-    };
-
-    drawMini ("PLAY", R (31, 831, 50, 35));
-    g.setColour (juce::Colour::fromRGB (29, 31, 33));
-    g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
-    g.drawText ("STEPS", R (93, 831, 54, 35).toNearestInt(), juce::Justification::centredLeft);
-    drawMini ("16", R (145, 831, 72, 35));
-    drawMini ("COPY", R (242, 831, 59, 35));
-    drawMini ("PASTE", R (306, 831, 64, 35));
-    drawMini ("CLEAR", R (374, 831, 65, 35));
-    drawMini ("RND", R (444, 831, 46, 35));
-
-    // Crusher heading accent + power glyph.
-    g.setColour (juce::Colour::fromRGB (25, 27, 29));
-    g.setFont (juce::Font (juce::FontOptions (13.0f * sx)).boldened());
-    g.drawText ("POWER", R (1220, 669, 58, 28).toNearestInt(), juce::Justification::centredRight);
 
     // Bottom master labels.
     g.setColour (juce::Colour::fromRGB (28, 30, 32));
     g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
     g.drawText ("OUTPUT", R (32, 882, 68, 28).toNearestInt(), juce::Justification::centredLeft);
-    g.drawText ("MIX", R (1150, 882, 50, 28).toNearestInt(), juce::Justification::centredRight);
     g.drawText ("WIDTH", R (1392, 882, 62, 28).toNearestInt(), juce::Justification::centredRight);
 }
 
