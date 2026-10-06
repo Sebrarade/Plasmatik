@@ -35,6 +35,8 @@ juce_add_plugin(Plasmatik
     COPY_PLUGIN_AFTER_BUILD FALSE
 )
 
+juce_generate_juce_header(Plasmatik)
+
 target_sources(Plasmatik PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginProcessor.h
