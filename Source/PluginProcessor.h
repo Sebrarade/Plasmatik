@@ -37,7 +37,6 @@ public:
     void mutate (float amount = 0.72f);
     void requestEvolve (int voice);
     float getPatternValue (int voice, int step) const noexcept;
-    void loadPreset (int presetIndex);
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
