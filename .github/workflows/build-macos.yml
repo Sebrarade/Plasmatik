@@ -31,7 +31,7 @@ jobs:
           curl -L "https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_macOS.zip" -o pluginval.zip
           unzip -q pluginval.zip -d pluginval
           xattr -cr pluginval/pluginval.app || true
-          pluginval/pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --skip-gui-tests "build/Plasmatik_artefacts/Release/VST3/Plasmatik.vst3"
+          pluginval/pluginval.app/Contents/MacOS/pluginval --strictness-level 5 "build/Plasmatik_artefacts/Release/VST3/Plasmatik.vst3"
 
       - name: Package
         run: |
