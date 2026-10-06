@@ -176,19 +176,6 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
 
 
 
-    preset.addItem ("Plasma Garden", 1);
-    preset.addItem ("Laser Dust", 2);
-    preset.addItem ("Broken Glass", 3);
-    preset.addItem ("Soft Machine", 4);
-    preset.setSelectedId (1, juce::dontSendNotification);
-    preset.setColour (juce::ComboBox::backgroundColourId, juce::Colour::fromRGB (247, 247, 245));
-    preset.setColour (juce::ComboBox::textColourId, juce::Colour::fromRGB (24, 26, 28));
-    preset.setColour (juce::ComboBox::outlineColourId, juce::Colour::fromRGB (199, 201, 201));
-    preset.onChange = [this]
-    {
-        processor.loadPreset (juce::jmax (0, preset.getSelectedItemIndex()));
-    };
-    addAndMakeVisible (preset);
 
     const juce::StringArray lfoShapes { "Sine", "Triangle", "Saw", "Square", "S&H", "Smooth Random" };
     const juce::StringArray lfoRates { "4 Bars", "2 Bars", "1 Bar", "1/2", "1/4", "1/8", "1/16", "1/32" };
@@ -447,13 +434,6 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
         g.drawLine (1312.0f * sx, y, 1648.0f * sx, y, 1.0f);
     }
 
-    // Header utility marks.
-    g.setColour (juce::Colour::fromRGB (28, 30, 32));
-    g.setFont (juce::Font (juce::FontOptions (30.0f * sx)).boldened());
-    g.drawText ("◯", R (28, 72, 42, 42).toNearestInt(), juce::Justification::centred);
-    g.setFont (juce::Font (juce::FontOptions (25.0f * sx)));
-    g.drawText ("‹", R (100, 72, 28, 42).toNearestInt(), juce::Justification::centred);
-    g.drawText ("›", R (135, 72, 28, 42).toNearestInt(), juce::Justification::centred);
 
 
     // PLASMATIK only — subtitle intentionally removed.
@@ -461,13 +441,6 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (juce::Font (juce::FontOptions (31.0f * sx)));
     g.drawText ("P  L  A  S  M  A  T  I  K", R (715, 69, 430, 43).toNearestInt(), juce::Justification::centred);
 
-    // Top-right utility labels.
-    g.setFont (juce::Font (juce::FontOptions (13.5f * sx)).boldened());
-    g.drawText ("◇", R (1362, 73, 44, 42).toNearestInt(), juce::Justification::centred);
-    g.drawText ("INIT", R (1422, 78, 52, 32).toNearestInt(), juce::Justification::centred);
-    g.drawText ("SAVE", R (1494, 78, 58, 32).toNearestInt(), juce::Justification::centred);
-    g.setFont (juce::Font (juce::FontOptions (24.0f * sx)).boldened());
-    g.drawText ("•••", R (1576, 76, 56, 32).toNearestInt(), juce::Justification::centred);
 
     // Small visual utility row under the sequencer – matches the approved design.
     auto util = R (28, 826, 468, 47);
@@ -487,20 +460,19 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
         g.drawText (text, r.toNearestInt(), juce::Justification::centred);
     };
 
-    drawMini ("▶", R (31, 831, 50, 35));
+    drawMini ("PLAY", R (31, 831, 50, 35));
     g.setColour (juce::Colour::fromRGB (29, 31, 33));
     g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
     g.drawText ("STEPS", R (93, 831, 54, 35).toNearestInt(), juce::Justification::centredLeft);
-    drawMini ("16⌄", R (145, 831, 72, 35));
+    drawMini ("16", R (145, 831, 72, 35));
     drawMini ("COPY", R (242, 831, 59, 35));
     drawMini ("PASTE", R (306, 831, 64, 35));
     drawMini ("CLEAR", R (374, 831, 65, 35));
-    drawMini ("⤨", R (444, 831, 46, 35));
+    drawMini ("RND", R (444, 831, 46, 35));
 
     // Crusher heading accent + power glyph.
     g.setColour (juce::Colour::fromRGB (25, 27, 29));
     g.setFont (juce::Font (juce::FontOptions (13.0f * sx)).boldened());
-    g.drawText ("⌁", R (930, 669, 30, 28).toNearestInt(), juce::Justification::centred);
     g.drawText ("POWER", R (1220, 669, 58, 28).toNearestInt(), juce::Justification::centredRight);
 
     // Bottom master labels.
@@ -523,8 +495,6 @@ void PlasmaPercAudioProcessorEditor::resized()
                                      juce::roundToInt ((float) h * sy));
     };
 
-    // Header preset field.
-    preset.setBounds (B (179, 78, 326, 45));
 
     // Sequencer tracks.
     const std::array<int, 4> seqY { 208, 369, 531, 692 };
