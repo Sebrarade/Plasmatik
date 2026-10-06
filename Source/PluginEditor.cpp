@@ -13,51 +13,86 @@ void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawRotarySlider (
     juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
     float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
 {
-    auto bounds = juce::Rectangle<float> ((float) x, (float) y, (float) width, (float) height).reduced (5.0f);
-    const float radius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f;
+    auto bounds = juce::Rectangle<float> ((float) x, (float) y, (float) width, (float) height);
+    const float d = juce::jmin (bounds.getWidth(), bounds.getHeight()) - 10.0f;
+    const float radius = d * 0.5f;
     const auto centre = bounds.getCentre();
+    const auto knob = juce::Rectangle<float> (centre.x - radius, centre.y - radius, d, d);
 
-    g.setColour (juce::Colour::fromRGB (229, 229, 226));
-    g.fillEllipse (centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
+    g.setColour (juce::Colour::fromRGBA (25, 27, 29, 26));
+    g.fillEllipse (knob.translated (3.0f, 4.0f));
 
-    g.setColour (juce::Colour::fromRGB (190, 191, 190));
-    g.drawEllipse (centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f, 1.0f);
+    juce::ColourGradient face (juce::Colour::fromRGB (250, 250, 248), knob.getX(), knob.getY(),
+                               juce::Colour::fromRGB (212, 213, 211), knob.getRight(), knob.getBottom(), false);
+    face.addColour (0.45, juce::Colour::fromRGB (239, 239, 237));
+    g.setGradientFill (face);
+    g.fillEllipse (knob);
+    g.setColour (juce::Colour::fromRGB (184, 187, 186));
+    g.drawEllipse (knob, 1.1f);
 
-    const float arcRadius = radius + 2.0f;
-    juce::Path backgroundArc;
-    backgroundArc.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f,
-                                 rotaryStartAngle, rotaryEndAngle, true);
-    g.setColour (juce::Colour::fromRGB (205, 206, 204));
-    g.strokePath (backgroundArc, juce::PathStrokeType (2.3f, juce::PathStrokeType::curved));
+    const float arcRadius = radius + 4.0f;
+    juce::Path darkArc;
+    darkArc.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f,
+                           rotaryStartAngle, rotaryEndAngle, true);
+    g.setColour (juce::Colour::fromRGB (22, 25, 27));
+    g.strokePath (darkArc, juce::PathStrokeType (3.0f, juce::PathStrokeType::curved,
+                                                 juce::PathStrokeType::rounded));
 
+    const float valueEnd = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
     juce::Path valueArc;
     valueArc.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f,
-                            rotaryStartAngle,
-                            rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle), true);
+                            rotaryStartAngle, valueEnd, true);
     g.setColour (slider.findColour (juce::Slider::rotarySliderFillColourId));
-    g.strokePath (valueArc, juce::PathStrokeType (3.0f, juce::PathStrokeType::curved));
+    g.strokePath (valueArc, juce::PathStrokeType (3.4f, juce::PathStrokeType::curved,
+                                                  juce::PathStrokeType::rounded));
 
-    const float angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    const auto dot = centre + juce::Point<float> (std::sin (angle), -std::cos (angle)) * (radius * 0.55f);
-    g.setColour (juce::Colour::fromRGB (22, 24, 27));
-    g.fillEllipse (dot.x - 2.3f, dot.y - 2.3f, 4.6f, 4.6f);
+    const auto dot = centre + juce::Point<float> (std::sin (valueEnd), -std::cos (valueEnd)) * (radius * 0.58f);
+    g.setColour (juce::Colour::fromRGB (19, 21, 23));
+    g.fillEllipse (dot.x - 2.0f, dot.y - 2.0f, 4.0f, 4.0f);
 }
 
 void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawButtonBackground (
     juce::Graphics& g, juce::Button& button, const juce::Colour&, bool isHighlighted, bool isDown)
 {
-    auto r = button.getLocalBounds().toFloat().reduced (0.5f);
-    auto colour = button.getToggleState()
-        ? button.findColour (juce::TextButton::buttonOnColourId)
-        : button.findColour (juce::TextButton::buttonColourId);
+    auto r = button.getLocalBounds().toFloat().reduced (0.6f);
+    const auto accent = button.findColour (juce::TextButton::buttonOnColourId);
+    const bool on = button.getToggleState();
 
-    if (isHighlighted) colour = colour.contrasting (0.05f);
-    if (isDown) colour = colour.darker (0.08f);
+    auto fill = juce::Colour::fromRGB (250, 250, 248);
+    if (on) fill = accent.withMultipliedAlpha (0.12f).overlaidWith (fill.withAlpha (0.88f));
+    if (isHighlighted) fill = fill.darker (0.025f);
+    if (isDown) fill = fill.darker (0.055f);
 
-    g.setColour (colour);
-    g.fillRoundedRectangle (r, 5.0f);
-    g.setColour (juce::Colour::fromRGB (196, 198, 198));
-    g.drawRoundedRectangle (r, 5.0f, 1.0f);
+    g.setColour (juce::Colour::fromRGBA (20, 22, 24, 16));
+    g.fillRoundedRectangle (r.translated (0.0f, 1.5f), 4.5f);
+    g.setColour (fill);
+    g.fillRoundedRectangle (r, 4.5f);
+    g.setColour (juce::Colour::fromRGB (198, 200, 200));
+    g.drawRoundedRectangle (r, 4.5f, 1.0f);
+
+    if (button.getButtonText() == "MUTE")
+    {
+        auto dot = juce::Rectangle<float> (8.0f, r.getCentreY() - 5.5f, 11.0f, 11.0f);
+        g.setColour (accent.withAlpha (0.95f));
+        g.drawEllipse (dot, 2.4f);
+        if (on)
+        {
+            g.setColour (accent.withAlpha (0.28f));
+            g.fillEllipse (dot.reduced (2.2f));
+        }
+    }
+
+    if (button.getButtonText() == "MUTATE")
+    {
+        auto dice = juce::Rectangle<float> (17.0f, r.getCentreY() - 12.0f, 24.0f, 24.0f);
+        g.setColour (juce::Colour::fromRGB (25, 27, 29));
+        g.drawRoundedRectangle (dice, 3.0f, 1.6f);
+        const std::array<juce::Point<float>,5> pts {{
+            {dice.getX()+6.0f,dice.getY()+6.0f},{dice.getRight()-6.0f,dice.getY()+6.0f},
+            {dice.getCentreX(),dice.getCentreY()},{dice.getX()+6.0f,dice.getBottom()-6.0f},
+            {dice.getRight()-6.0f,dice.getBottom()-6.0f}}};
+        for (auto p : pts) g.fillEllipse (p.x-1.8f,p.y-1.8f,3.6f,3.6f);
+    }
 }
 
 void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawLinearSlider (
@@ -69,42 +104,38 @@ void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawLinearSlider (
         juce::LookAndFeel_V4::drawLinearSlider (g, x, y, width, height, sliderPos, 0.0f, 1.0f, style, slider);
         return;
     }
-
-    auto r = juce::Rectangle<float> ((float) x, (float) y, (float) width, (float) height).reduced (3.0f, height * 0.34f);
-    const float radius = r.getHeight() * 0.5f;
-
-    g.setColour (juce::Colour::fromRGB (220, 221, 219));
-    g.fillRoundedRectangle (r, radius);
-
-    auto filled = r;
-    filled.setWidth (juce::jlimit (0.0f, r.getWidth(), sliderPos - r.getX()));
-    g.setColour (slider.findColour (juce::Slider::trackColourId));
-    g.fillRoundedRectangle (filled, radius);
-
-    const float thumbX = juce::jlimit (r.getX(), r.getRight(), sliderPos);
-    g.setColour (juce::Colour::fromRGB (245, 245, 242));
-    g.fillEllipse (thumbX - 5.0f, r.getCentreY() - 5.0f, 10.0f, 10.0f);
-    g.setColour (juce::Colour::fromRGB (166, 168, 168));
-    g.drawEllipse (thumbX - 5.0f, r.getCentreY() - 5.0f, 10.0f, 10.0f, 1.0f);
+    auto track = juce::Rectangle<float> ((float)x+3.0f, (float)y+height*0.40f,
+                                         (float)width-6.0f, juce::jmax (7.0f, height*0.20f));
+    const float rad = track.getHeight()*0.5f;
+    g.setColour (juce::Colour::fromRGB (221,222,220));
+    g.fillRoundedRectangle (track,rad);
+    auto fill=track;
+    fill.setWidth (juce::jlimit (0.0f,track.getWidth(),sliderPos-track.getX()));
+    g.setColour (slider.findColour (juce::Slider::trackColourId).withAlpha (0.92f));
+    g.fillRoundedRectangle (fill,rad);
+    const float tx=juce::jlimit(track.getX(),track.getRight(),sliderPos);
+    g.setColour (juce::Colour::fromRGBA(20,22,24,25));
+    g.fillEllipse(tx-6.0f,track.getCentreY()-4.5f,12.0f,12.0f);
+    g.setColour(juce::Colour::fromRGB(246,246,244));
+    g.fillEllipse(tx-6.0f,track.getCentreY()-6.0f,12.0f,12.0f);
+    g.setColour(juce::Colour::fromRGB(169,171,170));
+    g.drawEllipse(tx-6.0f,track.getCentreY()-6.0f,12.0f,12.0f,1.0f);
 }
 
 void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawComboBox (
     juce::Graphics& g, int width, int height, bool, int, int, int, int, juce::ComboBox& box)
 {
-    auto r = juce::Rectangle<float> (0.5f, 0.5f, (float) width - 1.0f, (float) height - 1.0f);
-    g.setColour (juce::Colour::fromRGB (249, 249, 247));
-    g.fillRoundedRectangle (r, 4.5f);
-    g.setColour (juce::Colour::fromRGB (197, 199, 199));
-    g.drawRoundedRectangle (r, 4.5f, 1.0f);
-
-    const float cx = (float) width - 15.0f;
-    const float cy = (float) height * 0.50f;
-    juce::Path p;
-    p.startNewSubPath (cx - 4.0f, cy - 2.0f);
-    p.lineTo (cx, cy + 2.0f);
-    p.lineTo (cx + 4.0f, cy - 2.0f);
-    g.setColour (box.findColour (juce::ComboBox::textColourId));
-    g.strokePath (p, juce::PathStrokeType (1.7f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    auto r=juce::Rectangle<float>(0.5f,0.5f,(float)width-1.0f,(float)height-1.0f);
+    g.setColour(juce::Colour::fromRGBA(20,22,24,13));
+    g.fillRoundedRectangle(r.translated(0.0f,1.2f),4.5f);
+    g.setColour(juce::Colour::fromRGB(250,250,248));
+    g.fillRoundedRectangle(r,4.5f);
+    g.setColour(juce::Colour::fromRGB(200,202,201));
+    g.drawRoundedRectangle(r,4.5f,1.0f);
+    const float cx=(float)width-14.0f, cy=(float)height*0.50f;
+    juce::Path p; p.startNewSubPath(cx-4.0f,cy-2.0f); p.lineTo(cx,cy+2.0f); p.lineTo(cx+4.0f,cy-2.0f);
+    g.setColour(box.findColour(juce::ComboBox::textColourId));
+    g.strokePath(p,juce::PathStrokeType(1.6f,juce::PathStrokeType::curved,juce::PathStrokeType::rounded));
 }
 
 void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::positionComboBoxText (
@@ -127,43 +158,27 @@ PlasmaPercAudioProcessorEditor::PatternView::PatternView (
 
 void PlasmaPercAudioProcessorEditor::PatternView::paint (juce::Graphics& g)
 {
-    auto area = getLocalBounds().toFloat().reduced (2.0f);
-    const float stepW = area.getWidth() / 16.0f;
-
-    juce::Path curve;
-    bool started = false;
-
-    for (int s = 0; s < 16; ++s)
-    {
-        const float p = processor.getPatternValue (voice, s);
-        const float h = juce::jmap (p, 0.0f, 1.0f, 3.0f, area.getHeight() * 0.80f);
-        const float x = area.getX() + stepW * (float) s + stepW * 0.18f;
-        const float w = stepW * 0.55f;
-        const float y = area.getBottom() - h;
-
-        g.setColour (accent.withAlpha (0.60f));
-        g.fillRoundedRectangle (x, y, w, h, juce::jmin (2.0f, w * 0.3f));
-
-        const auto point = juce::Point<float> (x + w * 0.5f, y - 3.0f);
-        if (! started)
-        {
-            curve.startNewSubPath (point);
-            started = true;
-        }
-        else
-        {
-            curve.lineTo (point);
-        }
-
-        g.setColour (accent.withAlpha (0.9f));
-        g.fillEllipse (point.x - 1.7f, point.y - 1.7f, 3.4f, 3.4f);
+    auto area=getLocalBounds().toFloat().reduced(1.0f);
+    const float stepW=area.getWidth()/16.0f;
+    g.setColour(accent.withAlpha(0.26f));
+    for(int s=0;s<16;++s){const float x=area.getX()+stepW*(float)s+stepW*0.5f;for(int d=0;d<5;++d)g.fillEllipse(x-1.0f,area.getBottom()-8.0f-d*8.0f,2.0f,2.0f);}
+    juce::Path curve; bool started=false;
+    for(int s=0;s<16;++s){
+        const float p=processor.getPatternValue(voice,s);
+        const float h=juce::jmap(p,0.0f,1.0f,5.0f,area.getHeight()*0.78f);
+        const float x=area.getX()+stepW*(float)s+stepW*0.23f,w=juce::jmax(3.0f,stepW*0.34f),y=area.getBottom()-h;
+        g.setColour(accent.withAlpha(0.72f)); g.fillRoundedRectangle(x,y,w,h,juce::jmin(1.5f,w*0.3f));
+        auto pt=juce::Point<float>(x+w*0.5f,y-3.0f);
+        if(!started){curve.startNewSubPath(pt);started=true;}else curve.lineTo(pt);
+        g.setColour(accent.withAlpha(0.98f)); g.fillEllipse(pt.x-1.8f,pt.y-1.8f,3.6f,3.6f);
     }
-
-    g.setColour (accent.withAlpha (0.72f));
-    g.strokePath (curve, juce::PathStrokeType (1.5f, juce::PathStrokeType::curved));
+    g.setColour(accent.withAlpha(0.83f));
+    g.strokePath(curve,juce::PathStrokeType(1.55f,juce::PathStrokeType::curved,juce::PathStrokeType::rounded));
 }
 
 //==============================================================================
+
+PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor//==============================================================================
 
 PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
@@ -176,6 +191,24 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
     setSize (1672, 941);
 
     fairyImage = juce::ImageCache::getFromMemory (BinaryData::fairy_logo_jpg, BinaryData::fairy_logo_jpgSize);
+    if (fairyImage.isValid())
+    {
+        auto keyed = juce::Image (juce::Image::ARGB, fairyImage.getWidth(), fairyImage.getHeight(), true);
+        { juce::Graphics fg (keyed); fg.drawImageAt (fairyImage, 0, 0); }
+        juce::Image::BitmapData px (keyed, juce::Image::BitmapData::readWrite);
+        for (int yy = 0; yy < keyed.getHeight(); ++yy)
+            for (int xx = 0; xx < keyed.getWidth(); ++xx)
+            {
+                auto col = px.getPixelColour (xx, yy);
+                const float bright = col.getPerceivedBrightness();
+                const float sat = col.getSaturation();
+                float alpha = 1.0f;
+                if (bright > 0.90f && sat < 0.22f)
+                    alpha = juce::jlimit (0.0f, 1.0f, (0.985f - bright) / 0.085f);
+                px.setPixelColour (xx, yy, col.withAlpha (alpha));
+            }
+        fairyImage = keyed;
+    }
 
 
     preset.addItem ("Plasma Garden", 1);
@@ -192,9 +225,9 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
     };
     addAndMakeVisible (preset);
 
-    const juce::StringArray lfoShapes { "Sine", "Triangle", "Saw", "Square", "S&H", "Smooth Random" };
+    const juce::StringArray lfoShapes { "∿", "△", "╱", "□", "S&H", "≈RND" };
     const juce::StringArray lfoRates { "4 Bars", "2 Bars", "1 Bar", "1/2", "1/4", "1/8", "1/16", "1/32" };
-    const juce::StringArray waveNames { "Sine", "Triangle", "Square", "Saw", "Noise" };
+    const juce::StringArray waveNames { "∿", "△", "▜", "╱", "✣" };
 
     for (int v = 0; v < 4; ++v)
     {
@@ -401,14 +434,25 @@ void PlasmaPercAudioProcessorEditor::styleActionButton (
 void PlasmaPercAudioProcessorEditor::drawPanel (
     juce::Graphics& g, juce::Rectangle<int> r, const juce::String& title) const
 {
-    g.setColour (juce::Colour::fromRGB (249, 249, 247));
-    g.fillRoundedRectangle (r.toFloat(), 9.0f);
-    g.setColour (juce::Colour::fromRGB (209, 211, 211));
-    g.drawRoundedRectangle (r.toFloat(), 9.0f, 1.0f);
+    auto rf=r.toFloat();
+    g.setColour(juce::Colour::fromRGBA(20,22,24,14)); g.fillRoundedRectangle(rf.translated(0.0f,2.0f),7.0f);
+    g.setColour(juce::Colour::fromRGB(249,249,247)); g.fillRoundedRectangle(rf,7.0f);
+    g.setColour(juce::Colour::fromRGB(211,213,212)); g.drawRoundedRectangle(rf,7.0f,1.0f);
 
-    g.setColour (juce::Colour::fromRGB (27, 29, 31));
-    g.setFont (juce::Font (juce::FontOptions (16.0f)).boldened());
-    g.drawText (title, r.reduced (14, 7).removeFromTop (24), juce::Justification::centredLeft);
+    auto header=r.reduced(15,7).removeFromTop(44);
+    g.setColour(juce::Colour::fromRGB(25,27,29));
+    g.setFont(juce::Font(juce::FontOptions(18.0f)).boldened());
+    g.drawText(title,header.withTrimmedLeft(34),juce::Justification::centredLeft);
+
+    auto ir=header.removeFromLeft(26).toFloat();
+    juce::Path icon;
+    if(title=="SEQUENCERS"){icon.startNewSubPath(ir.getX()+2,ir.getCentreY()+5);icon.cubicTo(ir.getX()+7,ir.getY()+3,ir.getX()+11,ir.getBottom()-3,ir.getX()+16,ir.getCentreY()-5);icon.cubicTo(ir.getX()+19,ir.getY()+5,ir.getX()+22,ir.getY()+8,ir.getRight()-1,ir.getY()+4);}
+    else if(title=="VOICE ENGINES"){icon.startNewSubPath(ir.getX()+3,ir.getCentreY());icon.lineTo(ir.getX()+9,ir.getCentreY());icon.lineTo(ir.getX()+9,ir.getY()+4);icon.lineTo(ir.getX()+12,ir.getBottom()-4);icon.lineTo(ir.getX()+15,ir.getCentreY());icon.lineTo(ir.getRight()-2,ir.getCentreY());}
+    else if(title.startsWith("ENV")){icon.addEllipse(ir.reduced(2));icon.addEllipse(ir.reduced(8));}
+    else if(title.startsWith("BITCRUSHER")){icon.startNewSubPath(ir.getX()+2,ir.getBottom()-4);icon.lineTo(ir.getX()+9,ir.getBottom()-4);icon.lineTo(ir.getX()+9,ir.getCentreY());icon.lineTo(ir.getX()+16,ir.getCentreY());icon.lineTo(ir.getX()+16,ir.getY()+5);icon.lineTo(ir.getRight()-2,ir.getY()+5);}
+    else{icon.addEllipse(ir.getX()+1,ir.getCentreY()-5,10,10);icon.addEllipse(ir.getX()+8,ir.getY()+2,10,10);icon.addEllipse(ir.getX()+8,ir.getBottom()-12,10,10);}
+    g.setColour(juce::Colour::fromRGB(26,28,30)); g.strokePath(icon,juce::PathStrokeType(2.1f,juce::PathStrokeType::curved,juce::PathStrokeType::rounded));
+    g.setColour(juce::Colour::fromRGB(218,220,219)); g.drawLine((float)r.getX()+14.0f,(float)r.getY()+52.0f,(float)r.getRight()-14.0f,(float)r.getY()+52.0f,1.0f);
 }
 
 void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
