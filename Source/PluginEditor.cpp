@@ -95,6 +95,24 @@ void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawButtonBackground 
     }
 }
 
+void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawButtonText (
+    juce::Graphics& g, juce::TextButton& button, bool, bool)
+{
+    const auto colour = button.getToggleState()
+        ? button.findColour (juce::TextButton::textColourOnId)
+        : button.findColour (juce::TextButton::textColourOffId);
+
+    auto r = button.getLocalBounds();
+    if (button.getButtonText() == "MUTE")
+        r.removeFromLeft (19);
+    else if (button.getButtonText() == "MUTATE")
+        r.removeFromLeft (35);
+
+    g.setColour (colour);
+    g.setFont (juce::Font (juce::FontOptions (button.getButtonText() == "MUTATE" ? 16.0f : 12.5f)).boldened());
+    g.drawText (button.getButtonText(), r, juce::Justification::centred, true);
+}
+
 void PlasmaPercAudioProcessorEditor::PlasmatikLookAndFeel::drawLinearSlider (
     juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
     float, float, const juce::Slider::SliderStyle style, juce::Slider& slider)
@@ -464,108 +482,153 @@ void PlasmaPercAudioProcessorEditor::paint (juce::Graphics& g)
         return juce::Rectangle<float> (x * sx, y * sy, w * sx, h * sy);
     };
 
-    // Approved light/off-white shell.
-    g.fillAll (juce::Colour::fromRGB (242, 243, 241));
+    g.fillAll (juce::Colour::fromRGB (243, 244, 242));
 
-    // Very subtle top haze like the approved mockup.
-    juce::ColourGradient topGlow (juce::Colour::fromRGB (252, 252, 250), 836.0f * sx, 0.0f,
-                                  juce::Colour::fromRGB (238, 240, 239), 836.0f * sx, 150.0f * sy, false);
-    g.setGradientFill (topGlow);
-    g.fillRect (R (0, 0, 1672, 150));
+    juce::ColourGradient bg (juce::Colour::fromRGB (252, 252, 250), 836.0f*sx, 0.0f,
+                             juce::Colour::fromRGB (237, 239, 238), 836.0f*sx, 941.0f*sy, false);
+    bg.addColour (0.24, juce::Colour::fromRGB (247, 248, 246));
+    g.setGradientFill (bg);
+    g.fillAll();
 
-    // Main cards – same proportions as the approved artwork.
     drawPanel (g, R (10, 143, 502, 774).toNearestInt(), "SEQUENCERS");
     drawPanel (g, R (520, 143, 390, 774).toNearestInt(), "VOICE ENGINES");
     drawPanel (g, R (918, 143, 372, 511).toNearestInt(), "ENV / FILTER / GENERATIVE");
     drawPanel (g, R (918, 663, 372, 254).toNearestInt(), "BITCRUSHER (REDUX)");
     drawPanel (g, R (1298, 143, 364, 774).toNearestInt(), "EVERYTHING MACROS");
 
-    // Thin separators in the four track / macro lanes.
     g.setColour (juce::Colour::fromRGB (224, 225, 223));
     for (int i = 1; i < 4; ++i)
     {
         const float y = (201.0f + i * 160.0f) * sy;
-        g.drawLine (28.0f * sx, y, 497.0f * sx, y, 1.0f);
+        g.drawLine (28.0f*sx, y, 497.0f*sx, y, 1.0f);
     }
     for (int i = 1; i < 4; ++i)
     {
         const float y = (201.0f + i * 174.0f) * sy;
-        g.drawLine (1312.0f * sx, y, 1648.0f * sx, y, 1.0f);
+        g.drawLine (1312.0f*sx, y, 1648.0f*sx, y, 1.0f);
     }
 
-    // Header utility marks.
-    g.setColour (juce::Colour::fromRGB (28, 30, 32));
-    g.setFont (juce::Font (juce::FontOptions (30.0f * sx)).boldened());
-    g.drawText ("◯", R (28, 72, 42, 42).toNearestInt(), juce::Justification::centred);
-    g.setFont (juce::Font (juce::FontOptions (25.0f * sx)));
-    g.drawText ("‹", R (100, 72, 28, 42).toNearestInt(), juce::Justification::centred);
-    g.drawText ("›", R (135, 72, 28, 42).toNearestInt(), juce::Justification::centred);
+    // Header: power, arrows and the approved simple utility language.
+    g.setColour (juce::Colour::fromRGB (26, 28, 30));
+    {
+        auto pr = R (31, 76, 38, 38);
+        g.drawEllipse (pr.reduced (5.0f*sx), 2.6f*sx);
+        g.drawLine (pr.getCentreX(), pr.getY()+2.0f*sy,
+                    pr.getCentreX(), pr.getCentreY()+3.0f*sy, 2.8f*sx);
+    }
+    g.setFont (juce::Font (juce::FontOptions (25.0f*sx)));
+    g.drawText ("‹", R (99, 73, 30, 42).toNearestInt(), juce::Justification::centred);
+    g.drawText ("›", R (135, 73, 30, 42).toNearestInt(), juce::Justification::centred);
 
-    // Fairy branding: compact mark above the title + large pale right-hand watermark.
     if (fairyImage.isValid())
     {
         g.setOpacity (0.98f);
-        auto logo = R (642, 1, 100, 116).toNearestInt();
+        auto logo = R (645, 0, 94, 115).toNearestInt();
         g.drawImageWithin (fairyImage, logo.getX(), logo.getY(), logo.getWidth(), logo.getHeight(),
                            juce::RectanglePlacement::centred, false);
 
-        g.setOpacity (0.18f);
-        auto art = R (1452, 180, 205, 650).toNearestInt();
+        g.setOpacity (0.17f);
+        auto art = R (1452, 188, 198, 646).toNearestInt();
         g.drawImageWithin (fairyImage, art.getX(), art.getY(), art.getWidth(), art.getHeight(),
                            juce::RectanglePlacement::centred, false);
         g.setOpacity (1.0f);
     }
 
-    // PLASMATIK only — subtitle intentionally removed.
+    // The user explicitly asked to keep only PLASMATIK here — no subtitle.
     g.setColour (juce::Colour::fromRGB (18, 20, 23));
-    g.setFont (juce::Font (juce::FontOptions (31.0f * sx)));
-    g.drawText ("P  L  A  S  M  A  T  I  K", R (715, 69, 430, 43).toNearestInt(), juce::Justification::centred);
+    g.setFont (juce::Font (juce::FontOptions (31.0f*sx)));
+    g.drawText ("P  L  A  S  M  A  T  I  K",
+                R (718, 70, 424, 43).toNearestInt(), juce::Justification::centred);
 
-    // Top-right utility labels.
-    g.setFont (juce::Font (juce::FontOptions (13.5f * sx)).boldened());
-    g.drawText ("◇", R (1362, 73, 44, 42).toNearestInt(), juce::Justification::centred);
-    g.drawText ("INIT", R (1422, 78, 52, 32).toNearestInt(), juce::Justification::centred);
-    g.drawText ("SAVE", R (1494, 78, 58, 32).toNearestInt(), juce::Justification::centred);
-    g.setFont (juce::Font (juce::FontOptions (24.0f * sx)).boldened());
-    g.drawText ("•••", R (1576, 76, 56, 32).toNearestInt(), juce::Justification::centred);
-
-    // Small visual utility row under the sequencer – matches the approved design.
-    auto util = R (28, 826, 468, 47);
-    g.setColour (juce::Colour::fromRGB (246, 247, 245));
-    g.fillRoundedRectangle (util, 5.0f * sx);
-    g.setColour (juce::Colour::fromRGB (204, 206, 205));
-    g.drawRoundedRectangle (util, 5.0f * sx, 1.0f);
-
-    auto drawMini = [&] (juce::String text, juce::Rectangle<float> r)
+    // Top right utilities, same spacing as the approved artwork.
+    auto drawTopBox = [&] (juce::Rectangle<float> rr)
     {
-        g.setColour (juce::Colour::fromRGB (249, 249, 247));
-        g.fillRoundedRectangle (r, 4.0f * sx);
-        g.setColour (juce::Colour::fromRGB (198, 200, 200));
-        g.drawRoundedRectangle (r, 4.0f * sx, 1.0f);
-        g.setColour (juce::Colour::fromRGB (29, 31, 33));
-        g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
-        g.drawText (text, r.toNearestInt(), juce::Justification::centred);
+        g.setColour (juce::Colour::fromRGB (250, 250, 248));
+        g.fillRoundedRectangle (rr, 4.0f*sx);
+        g.setColour (juce::Colour::fromRGB (201, 203, 202));
+        g.drawRoundedRectangle (rr, 4.0f*sx, 1.0f);
     };
+    drawTopBox (R (1360, 76, 52, 45));
+    g.setColour (juce::Colour::fromRGB (24, 26, 28));
+    g.setFont (juce::Font (juce::FontOptions (17.0f*sx)).boldened());
+    g.drawText ("◇", R (1362, 77, 48, 43).toNearestInt(), juce::Justification::centred);
+    g.setFont (juce::Font (juce::FontOptions (13.0f*sx)).boldened());
+    g.drawText ("INIT", R (1429, 80, 48, 34).toNearestInt(), juce::Justification::centred);
+    g.drawText ("SAVE", R (1504, 80, 55, 34).toNearestInt(), juce::Justification::centred);
+    g.setFont (juce::Font (juce::FontOptions (22.0f*sx)).boldened());
+    g.drawText ("•••", R (1581, 78, 54, 34).toNearestInt(), juce::Justification::centred);
 
+    // GLOBAL + settings at the top of the sequencer card.
+    {
+        auto gb = R (307, 153, 142, 35);
+        drawTopBox (gb);
+        g.setColour (juce::Colour::fromRGB (26, 28, 30));
+        g.setFont (juce::Font (juce::FontOptions (12.5f*sx)).boldened());
+        g.drawText ("◇   GLOBAL    ⌄", gb.toNearestInt(), juce::Justification::centred);
+        g.setFont (juce::Font (juce::FontOptions (19.0f*sx)).boldened());
+        g.drawText ("⚙", R (461, 153, 33, 35).toNearestInt(), juce::Justification::centred);
+    }
+
+    // Voice identity dots.
+    const std::array<float,4> trackY { 221.0f, 382.0f, 544.0f, 705.0f };
+    const std::array<float,4> macroY { 211.0f, 385.0f, 559.0f, 733.0f };
+    for (int v = 0; v < 4; ++v)
+    {
+        g.setColour (voiceColour (v));
+        g.fillEllipse (R (37, trackY[(size_t)v], 22, 22));
+        g.fillEllipse (R (1310, macroY[(size_t)v], 18, 18));
+    }
+
+    // Sequencer footer.
+    auto drawMini = [&] (const juce::String& text, juce::Rectangle<float> rr)
+    {
+        g.setColour (juce::Colour::fromRGB (250, 250, 248));
+        g.fillRoundedRectangle (rr, 4.0f*sx);
+        g.setColour (juce::Colour::fromRGB (199, 201, 200));
+        g.drawRoundedRectangle (rr, 4.0f*sx, 1.0f);
+        g.setColour (juce::Colour::fromRGB (29, 31, 33));
+        g.setFont (juce::Font (juce::FontOptions (11.5f*sx)).boldened());
+        g.drawText (text, rr.toNearestInt(), juce::Justification::centred);
+    };
     drawMini ("▶", R (31, 831, 50, 35));
     g.setColour (juce::Colour::fromRGB (29, 31, 33));
-    g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
+    g.setFont (juce::Font (juce::FontOptions (11.5f*sx)).boldened());
     g.drawText ("STEPS", R (93, 831, 54, 35).toNearestInt(), juce::Justification::centredLeft);
-    drawMini ("16⌄", R (145, 831, 72, 35));
+    drawMini ("16   ⌄", R (145, 831, 72, 35));
     drawMini ("COPY", R (242, 831, 59, 35));
     drawMini ("PASTE", R (306, 831, 64, 35));
     drawMini ("CLEAR", R (374, 831, 65, 35));
     drawMini ("⤨", R (444, 831, 46, 35));
 
-    // Crusher heading accent + power glyph.
+    // Crusher power + bottom MODE / GEN RATE row from the approved image.
     g.setColour (juce::Colour::fromRGB (25, 27, 29));
-    g.setFont (juce::Font (juce::FontOptions (13.0f * sx)).boldened());
-    g.drawText ("⌁", R (930, 669, 30, 28).toNearestInt(), juce::Justification::centred);
-    g.drawText ("POWER", R (1220, 669, 58, 28).toNearestInt(), juce::Justification::centredRight);
+    {
+        auto pwr = R (1241, 671, 28, 28);
+        g.drawEllipse (pwr.reduced (4.0f*sx), 2.0f*sx);
+        g.drawLine (pwr.getCentreX(), pwr.getY()+2.0f*sy,
+                    pwr.getCentreX(), pwr.getCentreY()+3.0f*sy, 2.1f*sx);
+    }
 
-    // Bottom master labels.
+    g.setFont (juce::Font (juce::FontOptions (10.8f*sx)).boldened());
+    g.drawText ("MODE", R (932, 844, 48, 22).toNearestInt(), juce::Justification::centredLeft);
+    g.drawText ("GEN RATE", R (1146, 844, 73, 22).toNearestInt(), juce::Justification::centredLeft);
+
+    auto modeBox = R (979, 840, 162, 31);
+    drawTopBox (modeBox);
+    g.setColour (juce::Colour::fromRGB (29, 31, 33));
+    g.setFont (juce::Font (juce::FontOptions (10.3f*sx)));
+    g.drawText ("Generative Percussion   ⌄", modeBox.toNearestInt(), juce::Justification::centred);
+
+    auto genTrack = R (1217, 850, 57, 9);
+    g.setColour (juce::Colour::fromRGB (220, 222, 220));
+    g.fillRoundedRectangle (genTrack, 4.5f*sx);
+    auto genFill = genTrack; genFill.setWidth (genTrack.getWidth()*0.46f);
+    g.setColour (juce::Colour::fromRGB (96, 100, 101));
+    g.fillRoundedRectangle (genFill, 4.5f*sx);
+
+    // Bottom master labels; actual sliders sit beside them.
     g.setColour (juce::Colour::fromRGB (28, 30, 32));
-    g.setFont (juce::Font (juce::FontOptions (12.0f * sx)).boldened());
+    g.setFont (juce::Font (juce::FontOptions (11.8f*sx)).boldened());
     g.drawText ("OUTPUT", R (32, 882, 68, 28).toNearestInt(), juce::Justification::centredLeft);
     g.drawText ("MIX", R (1150, 882, 50, 28).toNearestInt(), juce::Justification::centredRight);
     g.drawText ("WIDTH", R (1392, 882, 62, 28).toNearestInt(), juce::Justification::centredRight);
