@@ -261,7 +261,7 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
     }
 
     const std::array<const char*, 10> globalNames {
-        "DECAY", "ENV", "BASE", "BLAST", "RES", "DRIVE", "RANDOM", "VAR", "INTERACT", "CHAOS"
+        "DECAY", "ENV", "CUTOFF", "BLAST", "RES", "DRIVE", "RANDOM", "VAR", "INTERACT", "CHAOS"
     };
     const std::array<const char*, 10> globalIds {
         "decay", "env_amt", "filter_base", "filter_blast", "res", "drive", "random", "variation", "interact", "chaos"
@@ -274,6 +274,10 @@ PlasmaPercAudioProcessorEditor::PlasmaPercAudioProcessorEditor (PlasmaPercAudioP
         globalAttachments[(size_t) i] = std::make_unique<SliderAttachment> (
             processor.getAPVTS(), globalIds[(size_t) i], globals[(size_t) i]);
     }
+
+    styleCombo (filterType, filterTypeL, "TYPE");
+    filterType.addItemList ({ "LP", "BP", "HP" }, 1);
+    filterTypeA = std::make_unique<ComboAttachment> (processor.getAPVTS(), "filter_type", filterType);
 
     const std::array<const char*, 4> crusherNames { "CRUSH", "BITS", "MIX", "LFO" };
     const std::array<const char*, 4> crusherIds { "crush", "bits", "crush_mix", "crush_lfo_depth" };
@@ -529,7 +533,10 @@ void PlasmaPercAudioProcessorEditor::resized()
 
     globals[9].setBounds (B (942, 550, 72, 72));
     globalLabels[9].setBounds (B (937, 624, 82, 24));
-    mutate.setBounds (B (1043, 555, 218, 69));
+
+    filterTypeL.setBounds (B (1040, 547, 94, 20));
+    filterType.setBounds (B (1040, 569, 102, 38));
+    mutate.setBounds (B (1151, 555, 110, 69));
 
     // Bitcrusher.
     const std::array<int, 4> cx { 937, 997, 1057, 1117 };
