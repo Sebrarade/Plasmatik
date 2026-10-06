@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Plasmatik VERSION 0.3.0)
+project(Plasmatik VERSION 0.3.1)
 
 if(APPLE)
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build universal macOS binary" FORCE)
@@ -23,8 +23,8 @@ juce_add_binary_data(PlasmatikAssets SOURCES
 )
 
 juce_add_plugin(Plasmatik
-    COMPANY_NAME "Volodymyr Hnatenko"
-    BUNDLE_ID "com.volodymyrhnatenko.plasmatik"
+    COMPANY_NAME "Volodymyr Gnatenko"
+    BUNDLE_ID "com.volodymyrgnatenko.plasmatik"
     PLUGIN_MANUFACTURER_CODE Vhnt
     PLUGIN_CODE Plmk
     FORMATS VST3
