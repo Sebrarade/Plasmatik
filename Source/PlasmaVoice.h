@@ -13,6 +13,7 @@ struct PlasmaVoiceParams
     float decay = 0.35f;
     float envAmount = 0.75f;
     float filterBase = 1800.0f;
+    int filterType = 0; // 0 LP, 1 BP, 2 HP
     float filterBlast = 0.75f;
     float resonance = 0.65f;
     float drive = 0.45f;
