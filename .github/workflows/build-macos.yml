@@ -1,0 +1,39 @@
+name: Build macOS VST3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -G Xcode
+
+      - name: Build VST3
+        run: cmake --build build --config Release --target Plasmatik_VST3 --parallel 3
+
+      - name: Ad-hoc sign
+        run: |
+          VST3="build/Plasmatik_artefacts/Release/VST3/Plasmatik.vst3"
+          codesign --force --deep --sign - "$VST3"
+          codesign --verify --deep --strict "$VST3"
+          file "$VST3/Contents/MacOS/Plasmatik"
+          lipo -archs "$VST3/Contents/MacOS/Plasmatik"
+
+      - name: Package
+        run: |
+          cd build/Plasmatik_artefacts/Release/VST3
+          ditto -c -k --sequesterRsrc --keepParent Plasmatik.vst3 "$GITHUB_WORKSPACE/Plasmatik-macOS-VST3.zip"
+
+      - name: Upload VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: Plasmatik-macOS-VST3
+          path: Plasmatik-macOS-VST3.zip
+          if-no-files-found: error
