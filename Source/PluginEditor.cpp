@@ -539,17 +539,18 @@ void PlasmaPercAudioProcessorEditor::resized()
     mutate.setBounds (B (1151, 555, 110, 69));
 
     // Bitcrusher.
-    const std::array<int, 4> cx { 937, 997, 1057, 1117 };
+    const std::array<int, 4> cx { 935, 990, 1045, 1100 };
     for (int i = 0; i < 4; ++i)
     {
-        crusherKnobs[(size_t) i].setBounds (B (cx[(size_t) i], 716, 58, 58));
-        crusherLabels[(size_t) i].setBounds (B (cx[(size_t) i] - 2, 775, 62, 22));
+        crusherKnobs[(size_t) i].setBounds (B (cx[(size_t) i], 718, 52, 52));
+        crusherLabels[(size_t) i].setBounds (B (cx[(size_t) i] - 2, 774, 56, 22));
     }
 
-    crusherShapeL.setBounds (B (1130, 704, 95, 20));
-    crusherShape.setBounds (B (1130, 726, 142, 36));
-    crusherRateL.setBounds (B (1130, 769, 110, 20));
-    crusherRate.setBounds (B (1130, 792, 142, 38));
+    // Keep SHAPE/RATE clearly separated from the LFO knob and label.
+    crusherShapeL.setBounds (B (1164, 704, 100, 20));
+    crusherShape.setBounds (B (1164, 726, 108, 36));
+    crusherRateL.setBounds (B (1164, 769, 100, 20));
+    crusherRate.setBounds (B (1164, 792, 108, 38));
 
     // Everything macros.
     const std::array<int, 4> my { 207, 381, 555, 729 };
