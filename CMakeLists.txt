@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Plasmatik VERSION 0.4.1)
+project(Plasmatik VERSION 0.4.2)
 
 if(APPLE)
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build universal macOS binary" FORCE)
@@ -18,9 +18,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JUCE)
 
-juce_add_binary_data(PlasmatikAssets SOURCES
-    Assets/fairy_logo.jpg
-)
 
 juce_add_plugin(Plasmatik
     COMPANY_NAME "Volodymyr Gnatenko"
@@ -55,7 +52,6 @@ target_compile_definitions(Plasmatik PUBLIC
 )
 
 target_link_libraries(Plasmatik PRIVATE
-    PlasmatikAssets
     juce::juce_audio_utils
     juce::juce_dsp
     PUBLIC
