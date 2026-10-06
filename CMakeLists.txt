@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Plasmatik VERSION 0.5.1)
+project(Plasmatik VERSION 0.5.2)
 
 if(APPLE)
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build universal macOS binary" FORCE)
