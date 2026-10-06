@@ -8,12 +8,9 @@ float PlasmaVoice::softFold (float x) noexcept
     return fastTanh (x * 1.35f);
 }
 
-void PlasmaVoice::prepare (double sampleRate, int maximumBlockSize)
+void PlasmaVoice::prepare (double sampleRate, int)
 {
     sr = sampleRate;
-    juce::dsp::ProcessSpec spec { sampleRate, (juce::uint32) maximumBlockSize, 1 };
-    ladder.prepare (spec);
-    ladder.setMode (juce::dsp::LadderFilterMode::LPF24);
     reset();
 }
 
@@ -22,7 +19,7 @@ void PlasmaVoice::reset()
     active = false;
     ampEnv = filterEnv = 0.0f;
     phase = modPhase = 0.0f;
-    ladder.reset();
+    f1 = f2 = f3 = f4 = 0.0f;
 }
 
 void PlasmaVoice::trigger (float velocity, const PlasmaVoiceParams&, float globalChaos, uint32_t seed)
@@ -73,11 +70,12 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
         const float fmIndex = (0.12f + p.fm * 11.5f) * (1.0f + macro * 0.8f * macroA);
 
         const float mod = std::sin (modPhase) * fmIndex * juce::jlimit (0.15f, 1.0f, ampEnv + 0.15f);
-        float carrier = std::sin (phase + mod);
+        const float carrier = std::sin (phase + mod);
 
         const float dynamicNoise = juce::jlimit (0.0f, 1.0f, p.noise + macro * 0.28f * macroA);
         const float noise = (rng.nextFloat() * 2.0f - 1.0f) * filterEnv * (0.03f + dynamicNoise * 0.55f);
-        const float transientClick = (rng.nextFloat() * 2.0f - 1.0f) * (filterEnv * filterEnv) * (0.08f + dynamicNoise * 0.18f);
+        const float transientClick = (rng.nextFloat() * 2.0f - 1.0f)
+            * (filterEnv * filterEnv) * (0.08f + dynamicNoise * 0.18f);
 
         float x = carrier * (0.70f + 0.48f * p.tone) + noise + transientClick;
         x = softFold (x * (1.15f + p.fm * 1.6f + macro * 0.95f + p.drive * 0.8f));
@@ -94,14 +92,22 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
 
         const float dynamicRes = juce::jlimit (0.05f, 0.985f,
             p.resonance + macro * 0.22f * macroA + chaos * 0.08f * randomOffset);
-
-        ladder.setCutoffFrequencyHz (dynamicCutoff);
-        ladder.setResonance (dynamicRes);
         const float dynamicDrive = juce::jlimit (0.0f, 1.0f, p.drive + macro * 0.22f * macroB);
-        ladder.setDrive (1.0f + dynamicDrive * 4.0f + p.fm * 1.5f + chaos * 1.0f);
 
-        float filtered = ladder.processSample (0, x);
-        filtered *= ampEnv * vel * 0.36f;
+        // 4-pole nonlinear cascade. Resonant feedback plus the fast envelope
+        // creates the "blaster / plasma" chirp.
+        const float g = juce::jlimit (0.001f, 0.985f,
+            1.0f - std::exp (-juce::MathConstants<float>::twoPi * dynamicCutoff / (float) sr));
+        const float feedback = dynamicRes * 3.75f;
+        const float driven = fastTanh (x * (1.0f + dynamicDrive * 4.8f) - feedback * f4);
+
+        f1 += g * (driven - f1);
+        f2 += g * (fastTanh (f1 * 1.15f) - f2);
+        f3 += g * (fastTanh (f2 * 1.12f) - f3);
+        f4 += g * (fastTanh (f3 * 1.10f) - f4);
+
+        float filtered = fastTanh (f4 * (1.0f + dynamicRes * 1.6f));
+        filtered *= ampEnv * vel * 0.40f;
 
         const float panMotion = 0.30f * macro * macroA + 0.10f * randomOffset;
         const float pan = juce::jlimit (-0.85f, 0.85f, ((voiceIndex - 1.5f) * 0.16f) + panMotion);
@@ -111,12 +117,16 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
         left[startSample + n] += filtered * lg;
         right[startSample + n] += filtered * rg;
 
-        const float dynamicDecaySeconds = juce::jlimit (0.02f, 2.2f, baseDecaySeconds * std::pow (2.0f, macro * 0.65f * macroB));
+        const float dynamicDecaySeconds = juce::jlimit (0.02f, 2.2f,
+            baseDecaySeconds * std::pow (2.0f, macro * 0.65f * macroB));
         const float ampCoeff = std::exp (-1.0f / (float) (sr * dynamicDecaySeconds));
-        const float dynamicFilterDecay = juce::jlimit (0.015f, 1.2f, juce::jmap (p.decay, 0.02f, 0.75f) * std::pow (2.0f, macro * 0.45f * macroA));
+        const float dynamicFilterDecay = juce::jlimit (0.015f, 1.2f,
+            juce::jmap (p.decay, 0.02f, 0.75f) * std::pow (2.0f, macro * 0.45f * macroA));
         const float filterCoeff = std::exp (-1.0f / (float) (sr * dynamicFilterDecay));
+
         ampEnv *= ampCoeff;
         filterEnv *= filterCoeff;
+
         if (ampEnv < 0.00008f)
         {
             active = false;
