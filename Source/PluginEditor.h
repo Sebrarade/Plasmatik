@@ -118,6 +118,9 @@ private:
     std::array<juce::Slider, 10> globals;
     std::array<juce::Label, 10> globalLabels;
     std::array<std::unique_ptr<SliderAttachment>, 10> globalAttachments;
+    juce::ComboBox filterType;
+    juce::Label filterTypeL;
+    std::unique_ptr<ComboAttachment> filterTypeA;
 
     std::array<juce::Slider, 4> crusherKnobs;
     std::array<juce::Label, 4> crusherLabels;
