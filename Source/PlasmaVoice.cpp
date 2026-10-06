@@ -110,18 +110,18 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
         if (! active)
             continue;
 
-        const float dynamicTone = juce::jlimit (0.0f, 1.0f, p.tone + macroA * 0.28f);
-        const float dynamicFm = juce::jlimit (0.0f, 1.0f, p.fm + macroB * 0.42f);
-        const float dynamicNoise = juce::jlimit (0.0f, 1.0f, p.noise - macroA * 0.30f);
-        const float dynamicLevel = juce::jlimit (0.08f, 1.0f, p.level + macroB * 0.18f);
+        const float dynamicTone = juce::jlimit (0.0f, 1.0f, p.tone + macroA * 0.48f);
+        const float dynamicFm = juce::jlimit (0.0f, 1.0f, p.fm + macroB * 0.68f);
+        const float dynamicNoise = juce::jlimit (0.0f, 1.0f, p.noise - macroA * 0.48f);
+        const float dynamicLevel = juce::jlimit (0.08f, 1.0f, p.level + macroB * 0.26f);
 
         // Everything does NOT modulate decay by design.
         const float envPitchOct = (2.1f + 2.2f * p.envAmount + p.filterBlast * 0.8f) * filterEnv
-                                  + macroA * 0.52f;
-        const float base = p.pitchHz * (1.0f + pitchJitter + macroB * 0.07f);
+                                  + macroA * 0.90f;
+        const float base = p.pitchHz * (1.0f + pitchJitter + macroB * 0.12f);
         const float freq = juce::jlimit (20.0f, 12000.0f, base * std::pow (2.0f, envPitchOct));
 
-        const float modFreq = freq * (1.15f + 2.8f * dynamicTone + macroA * 0.35f);
+        const float modFreq = freq * (1.15f + 2.8f * dynamicTone + macroA * 0.85f);
         const float fmIndex = (0.10f + dynamicFm * 12.0f) * (1.0f + macroA * 0.55f);
 
         const float mod = std::sin (modPhase) * fmIndex * juce::jlimit (0.15f, 1.0f, ampEnv + 0.15f);
@@ -142,12 +142,12 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
 
         float dynamicCutoff = p.filterBase;
         dynamicCutoff += filterEnv * (4500.0f + 11000.0f * p.filterBlast + 3200.0f * dynamicTone);
-        dynamicCutoff *= std::pow (2.0f, macroB * 1.65f);
+        dynamicCutoff *= std::pow (2.0f, macroB * 2.35f);
         dynamicCutoff = juce::jlimit (60.0f, 19000.0f, dynamicCutoff);
 
         const float dynamicRes = juce::jlimit (0.05f, 0.985f,
-            p.resonance + macroA * 0.24f + chaos * 0.08f * randomOffset);
-        const float dynamicDrive = juce::jlimit (0.0f, 1.0f, p.drive + macroB * 0.25f);
+            p.resonance + macroA * 0.36f + chaos * 0.08f * randomOffset);
+        const float dynamicDrive = juce::jlimit (0.0f, 1.0f, p.drive + macroB * 0.42f);
 
         // Nonlinear 4-pole cascade with resonant feedback for plasma / blaster sweeps.
         const float g = juce::jlimit (0.001f, 0.985f,
@@ -160,7 +160,15 @@ void PlasmaVoice::process (juce::AudioBuffer<float>& output, int startSample, in
         f3 += g * (fastTanh (f2 * 1.12f) - f3);
         f4 += g * (fastTanh (f3 * 1.10f) - f4);
 
-        float filtered = fastTanh (f4 * (1.0f + dynamicRes * 1.6f));
+        const float low = f4;
+        const float band = (f2 - f4) * 1.8f;
+        const float high = driven - f1 * 1.35f + f4 * 0.35f;
+
+        float filterOut = low;
+        if (p.filterType == 1) filterOut = band;
+        else if (p.filterType == 2) filterOut = high;
+
+        float filtered = fastTanh (filterOut * (1.0f + dynamicRes * 1.6f));
         filtered *= ampEnv * vel * dynamicLevel * 0.46f;
 
         const float panMotion = 0.28f * macroA + 0.10f * randomOffset;
