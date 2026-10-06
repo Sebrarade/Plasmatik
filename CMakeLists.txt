@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Plasmatik VERSION 0.3.1)
+project(Plasmatik VERSION 0.3.2)
 
 if(APPLE)
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build universal macOS binary" FORCE)
@@ -19,7 +19,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(JUCE)
 
 juce_add_binary_data(PlasmatikAssets SOURCES
-    Assets/fairy.jpg
+    Assets/fairy_logo.jpg
 )
 
 juce_add_plugin(Plasmatik
