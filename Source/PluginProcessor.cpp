@@ -51,7 +51,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PlasmaPercAudioProcessor::cr
     layout.add (std::make_unique<juce::AudioParameterFloat> ("decay", "Decay", 0.0f, 1.0f, 0.30f));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("env_amt", "Env Amount", 0.0f, 1.0f, 0.72f));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("filter_base", "Cutoff",
-                 juce::NormalisableRange<float> (80.0f, 16000.0f, 0.1f, 0.26f), 1650.0f));
+                 juce::NormalisableRange<float> (20.0f, 16000.0f, 0.1f, 0.24f), 1650.0f));
     layout.add (std::make_unique<juce::AudioParameterChoice> ("filter_type", "Filter Type", filterTypes, 0));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("filter_blast", "Filter Blast", 0.0f, 1.0f, 0.78f));
     layout.add (std::make_unique<juce::AudioParameterFloat> ("res", "Resonance", 0.0f, 1.0f, 0.70f));
@@ -455,10 +455,8 @@ void PlasmaPercAudioProcessor::mutate (float amount)
         requestEvolve (v);
     }
 
-    // Decay is intentionally excluded from MUTATE.
+    // Decay, Cutoff and Filter Type are intentionally excluded from MUTATE.
     setNorm ("env_amt", 0.25f + 0.70f * rng.nextFloat());
-    setNorm ("filter_base", 0.04f + 0.82f * rng.nextFloat());
-    setNorm ("filter_type", rng.nextFloat());
     setNorm ("filter_blast", 0.20f + 0.78f * rng.nextFloat());
     setNorm ("res", 0.42f + 0.52f * rng.nextFloat());
     setNorm ("drive", 0.18f + 0.68f * rng.nextFloat());
